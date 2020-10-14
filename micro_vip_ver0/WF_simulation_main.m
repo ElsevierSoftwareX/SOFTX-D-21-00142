@@ -1,0 +1,73 @@
+
+
+ 
+
+%% Module 1: simulation nuage des points 
+
+%% à la base le génère que 16 chaines différentes avec 100 configuration chacune,
+% nous générons  des chaines  tel que plusieurs fois 16 avec différentes config.  
+%% d est le paramètre de la distribution uniform pour générer aléatoirement les distances entre les marqueurs
+clc; close all; clear all;
+d=100; 
+DC=46; %% max 100
+[Chromatine,ADN]=chain_chrom(d,DC); % Chromatine des cellules de coordonnée x,y et z de chaque chaine de chromatine 
+% Uncomment to visualize chaine de chromatine
+% figure;
+% for i=1:length(Chromatine) 
+%   ch=Chromatine{i};
+%   plot3(ch(:,1),ch(:,2),ch(:,3),'-k');
+%   xlabel('x');
+%   ylabel('y');
+%   zlabel('z');
+%  hold on 
+% end 
+
+%% Module 2: Simulation de la microscope (cas widefield, sans bruit de poisson et flou de mouvement)
+% Entrée nuage de point 3D ADN +  paramètre d'objective 
+% Sortie: image synthétique 3D 
+
+
+N=256;          % Points to use in FFT
+pixelsize = 6.5;    % Camera pixel size
+magnification = 60; % Objective magnification  %60
+NA=1.1;         % Numerical aperture at sample
+n=1.33;         % Refractive index at sample        % Refractive index at sample (water immersion n=1.33, dry n=1, oil n =1.51)
+lambda=0.525;   % Wavelength in um
+zrange=7;          % distance either side of focus to calculate  
+dz=0.2;             % step size in axial direction of PSF (um)
+
+show=1; % mettre show =1 pour visualiser le PSF et le OTF , si non show=0
+
+[img,aotf,psf,ADN]=Simulation3D(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,show);
+
+figure;
+plot3(ADN(:,1),ADN(:,2),ADN(:,3),'.g','MarkerSize',7); % plot ADN sur chaine de chromatine
+  xlabel('x');
+  ylabel('y');
+  zlabel('z');
+disp(['DNA number is : ', num2str(size(ADN,1))]);
+
+%% visualization
+
+figure;
+imshow(sum(img,3),[]);
+% figure;
+% imshow(squeeze(sum(img,2)),[]);
+
+%% saving image stack
+disp('saving image stack')
+ filename=('simulated_stack.tif'); 
+ delete(filename);
+ for ii=1:size(img,3)
+ % imwrite(uint16(65535* mat2gray(img(:,:,ii))),filename,'WriteMode','append'); 
+ imwrite(uint8(255* mat2gray(img(:,:,ii))),filename,'WriteMode','append');
+ end 
+
+%% %% saving psf
+disp('saving image PSF')
+ filename=('PSF.tif'); 
+ delete(filename);
+ for ii=1:size(psf,3)
+ % imwrite(uint16(65535* mat2gray(img(:,:,ii))),filename,'WriteMode','append'); 
+ imwrite(uint8(255*  mat2gray(psf(:,:,ii))),filename,'WriteMode','append');
+ end 
