@@ -1,29 +1,30 @@
-function [Ensoneof,ADN]=chain_chrom(d,DC)
+function [Ensoneof,ADN]=chain_chrom(distribfun,DC)
+% distribfun function picking a value in a distribution. For
+% instance, with @() 10*rand(1,1) distances between fluorophores
+% along a chromatin chain will follow a uniform distribution from 0 to
+% 10. distribfun should not have parameters
 
+    %% Gï¿½nï¿½ration des chaines de chromatine
+    % Generate 16 permutations of integers from 1 to 100 for each chain
+    permutations = cellfun(@(x) randperm(100), cell(16,1), 'UniformOutput', false);
 
-%% Génération des chaines de chromatine
-round1=1;
-round2=1;
-round3=1;
-p=randperm(100); % vecteur p(1,100) dont les valeurs entre 1 et 100 sont choisies aléatoirement
-for ii=1:DC
-     
+    % Get the required number of chains.
+    % We alternate the chromatin chains, and for each of them, we randomly pick
+    % configurations using the permutations computed
+    Ensoneof = cell(1,DC);
+    for ii=1:DC
+       chain_idx = mod(ii, 16) +1; % will vary from 1 to 16, alternating the chains
+       conf_idx = ceil(ii/16); % will be used to pick a random configuration
+       load(['data_base_chro_chaine/100',num2str(chain_idx),'.mat'], 'Ensemble');
+       Ensoneof{ii}=squeeze(Ensemble(permutations{chain_idx}(conf_idx),:,:));    
+    end  
 
-   load(['data_base_chro_chaine/100',num2str(mod(ii,16)+1),'.mat']);
-   Ensoneof{ii}=squeeze(Ensemble(p(ii),:,:)); 
-   
-   
-end  
-
-
-%% Génération des biomarqueurs selon une distribution uniform
-% Uncomment to visualize
-%%figure(1);
-ADN=[];
-for i=1:length(Ensoneof) 
-  ch=Ensoneof{i};
-   [q] = curvspace_unif(ch,d);
-   ADN=[ADN ; q] ; %%%%%% toutes les coordonées des ADNs générés (IMPORTANT, entrée de MODULE 2)%%%%%%% 
- end 
+    %% Gï¿½nï¿½ration des biomarqueurs selon une distribution uniform
+    ADN=[];
+    for i=1:length(Ensoneof) 
+        ch=Ensoneof{i};
+        [q] = curvspace_unif(ch, distribfun);
+        ADN=[ADN ; q] ; %%%%%% toutes les coordonï¿½es des ADNs gï¿½nï¿½rï¿½s (IMPORTANT, entrï¿½e de MODULE 2)%%%%%%% 
+     end 
 
 end 

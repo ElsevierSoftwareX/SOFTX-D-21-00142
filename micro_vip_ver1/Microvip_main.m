@@ -1,11 +1,11 @@
 clc; close all; clear all;
 
 %% Module 1: simulation nuage des points   
-% Paramètre à changer par l'utlisateur
+% Paramï¿½tre ï¿½ changer par l'utlisateur
 % type : type de distribution, typ=1 uniform, type=2 gaussienne
-% m et sig : paramètre des distributions pour générer aléatoirement les
-% distances entre les marqueurs : si uniform : m=param, set sig=0,si gaussienne: paramètres (m,sig);
-% paramètre à fixer par nous:
+% m et sig : paramï¿½tre des distributions pour gï¿½nï¿½rer alï¿½atoirement les
+% distances entre les marqueurs : si uniform : m=param, set sig=0,si gaussienne: paramï¿½tres (m,sig);
+% paramï¿½tre ï¿½ fixer par nous:
 % DC is the number of chromatin chain
 DC=46; %% max 100 , nb of chromatin chains
 m=50;
@@ -16,16 +16,16 @@ if type~=1 && type~=2
     return    
 elseif type==1
     sig=0;
-   [Chromatine,ADN]=chain_chrom(m,sig,DC,type); % Chromatine des cellules de coordonnée x,y et z de chaque chaine de chromatine 
+   [Chromatine,ADN]=chain_chrom(m,sig,DC,type); % Chromatine des cellules de coordonnï¿½e x,y et z de chaque chaine de chromatine 
 else 
-  [Chromatine,ADN]=chain_chrom(m,sig,DC,type); % Chromatine des cellules de coordonnée x,y et z de chaque chaine de chromatine 
+  [Chromatine,ADN]=chain_chrom(m,sig,DC,type); % Chromatine des cellules de coordonnï¿½e x,y et z de chaque chaine de chromatine 
 end
 % interpolate points : rotation and interpolation to FOV.
 ADN=inter_inFOV(ADN);
 
 %% Module 2: Simulation de la microscope : Approximation paraxial (without lambda of exitation)
 % simulation de l'image microscopique avec tous les noises 
-% tous les paraèmtre sont à changer par l'utilisateur
+% tous les paraï¿½mtre sont ï¿½ changer par l'utilisateur
 %ADN : 3D point cloud
 % lambda: longeurd'onde d'emission (um)
 % n : refractive index (immersion medium of the objective)
@@ -47,7 +47,7 @@ ADN=inter_inFOV(ADN);
 % microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
 % microscope=4 LSF avec 3 beam (very slow due to 7 phase shift) 
 %
-% Sortie: img :image synthétique 3D , VT: ground truth, PSF : point spread function
+% Sortie: img :image synthï¿½tique 3D , VT: ground truth, PSF : point spread function
 
 % parameters
 N=256;          % Points to use in FFT

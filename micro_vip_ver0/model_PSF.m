@@ -1,5 +1,5 @@
-function [aotf,otf,psf,Nn,dxn,Nz,Nzn]=model_PSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz,show)
-%% fonction qui modélise le PSF / le otf est le fft de PSF
+function [psf,dxn,Nz]=model_PSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+%% fonction qui modï¿½lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
 dxn = lambda/(4*NA);          % 2*Nyquist frequency in x and y. ( nyquest frequency = res/2) 
@@ -29,7 +29,6 @@ if Nz < Nzn
     Nz = Nzn;
     dz = dzn;
 end
-clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
 
@@ -52,29 +51,5 @@ end
 
 % Normalised so power in resampled psf (see later on) is unity in focal plane
 psf = psf * Nn^2/sum(pupil(:))*Nz/Nzn; 
-
-
-
-%% Calculate 3D-OTF
-disp('Creating 3D OTF');
-otf = fftn(psf);
-aotf = abs(fftshift(otf));
-
-
-%% 
-if show==1 
-   figure
-   imshow(psf(:,:,Nzn/2+10),[]);
-%    figure
-%    imshow(squeeze(psf(floor(Nn/2)),:,:),[]);
-   figure
-   imshow(log(squeeze(aotf(floor(Nn/2),:,:))+0.0001),[]);
-% 
-    figure
-    imshow(log(squeeze(aotf(:,floor(Nn/2),:))+0.0001),[]);
-
-    figure;
-    plot(squeeze(sum(aotf,[1 2])));
-end 
 
 end 

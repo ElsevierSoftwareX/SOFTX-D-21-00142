@@ -1,4 +1,4 @@
-function [otf,psf,Nn,dxn,Nz,Nzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
@@ -21,14 +21,10 @@ csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 
 alpha=asin(NA/n);
 dzn=lambda/(4*n*(1-cos(alpha)));    % Nyquist sampling in z, 
-Nz=2*ceil(zrange/dz);
-dz=2*zrange/Nz;
 Nzn=2*ceil(zrange/dzn);
 dzn=2*zrange/Nzn;
-if Nz < Nzn
-    Nz = Nzn;
-    dz = dzn;
-end
+Nz=max(2*ceil(zrange/dz), Nzn);
+
 clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
@@ -53,10 +49,4 @@ end
 % Normalised so power in resampled psf (see later on) is unity in focal plane
 psf = psf * Nn^2/sum(pupil(:))*Nz/Nzn; 
 
-
-
-%% Calculate 3D-OTF
-disp('Creating 3D OTF');
-otf = fftn(psf);
-aotf = abs(fftshift(otf));
 end 

@@ -1,4 +1,4 @@
-function [otf,psf,Nn,dxn,Nz,Nzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
 % SIM psf calculation for 3-phase dual beam SIM with light sheet
 % illumination and 2 in plane illumination beams over a single and 3
 % illumination angles.
@@ -26,14 +26,10 @@ sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sig
 csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 alpha=asin(NA/n);
 dzn=0.8*lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
-Nz=2*ceil(zrange/dz);
-dz=2*zrange/Nz;
 Nzn=2*ceil(zrange/dzn);
+Nz=max(2*ceil(zrange/dz), Nzn);
 dzn=2*zrange/Nzn;
-if Nz < Nzn
-    Nz = Nzn;
-    dz = dzn;
-end
+
 clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
@@ -66,9 +62,4 @@ end
 pupil = (kr<1);
 % Normalised so power in resampled psf (see later on) is unity in focal plane
 psf = psf * Nn^2/sum(pupil(:))*Nz/Nzn; 
-
-%% Calculate 3D-OTF
-disp('Creating 3D OTF');
-otf = fftn(psf);
-aotf = abs(fftshift(otf));
 end 
