@@ -1,8 +1,9 @@
-function [q] = curvspace_unif(p,N)
+function [q] = curvspace_unif(p,randfun)
 
 % CURVSPACE Evenly spaced points along an existing curve in 2D or 3D.
-%   N the parameter of uniform distribution 
-% distances between follows uniform distribution 
+%   randfun function picking a value in appropriate distribution. For
+%instance, with @() 10*rand(1,1) distances between dots will follow a 
+% uniform distribution from 0 to 10. randfun should not have parameters
 % p is one chain of chromatin
 
 
@@ -55,7 +56,7 @@ while (dist>intv)
       end
    end
    dist=distance(newpt,p(len,:));
-    intv=N*rand(1,1);
+    intv=randfun();
    % add to the output points
    q = [q; newpt];
    

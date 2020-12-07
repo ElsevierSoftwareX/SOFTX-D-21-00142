@@ -4,27 +4,29 @@
 
 %% Module 1: simulation nuage des points 
 
-%% à la base le génère que 16 chaines différentes avec 100 configuration chacune,
-% nous générons  des chaines  tel que plusieurs fois 16 avec différentes config.  
-%% d est le paramètre de la distribution uniform pour générer aléatoirement les distances entre les marqueurs
+%% ï¿½ la base le gï¿½nï¿½re que 16 chaines diffï¿½rentes avec 100 configuration chacune,
+% nous gï¿½nï¿½rons  des chaines  tel que plusieurs fois 16 avec diffï¿½rentes config.  
+%% d est le paramï¿½tre de la distribution uniform pour gï¿½nï¿½rer alï¿½atoirement les distances entre les marqueurs
 clc; close all; clear all;
-d=100; 
+distribfun = @() 100*rand(1,1);  % uniform : d*rand(1,1)
+%distribfun = @() 50 + 25*randn(1,1);  % gaussian : mu + sigma*randn(1,1)
 DC=46; %% max 100
-[Chromatine,ADN]=chain_chrom(d,DC); % Chromatine des cellules de coordonnée x,y et z de chaque chaine de chromatine 
+[Chromatine,ADN]=chain_chrom(distribfun,DC); % Chromatine des cellules de coordonnï¿½e x,y et z de chaque chaine de chromatine 
 % Uncomment to visualize chaine de chromatine
-% figure;
-% for i=1:length(Chromatine) 
-%   ch=Chromatine{i};
-%   plot3(ch(:,1),ch(:,2),ch(:,3),'-k');
-%   xlabel('x');
-%   ylabel('y');
-%   zlabel('z');
-%  hold on 
-% end 
+figure;
+for i=1:length(Chromatine) 
+  ch=Chromatine{i};
+  plot3(ch(:,1),ch(:,2),ch(:,3),'-k');
+  xlabel('x');
+  ylabel('y');
+  zlabel('z');
+ hold on 
+end 
+plot3(ADN(:,1),ADN(:,2),ADN(:,3),'.g','MarkerSize',7); % plot ADN sur chaine de chromatine
 
 %% Module 2: Simulation de la microscope (cas widefield, sans bruit de poisson et flou de mouvement)
-% Entrée nuage de point 3D ADN +  paramètre d'objective 
-% Sortie: image synthétique 3D 
+% Entrï¿½e nuage de point 3D ADN +  paramï¿½tre d'objective 
+% Sortie: image synthï¿½tique 3D 
 
 
 N=256;          % Points to use in FFT
@@ -35,10 +37,10 @@ n=1.33;         % Refractive index at sample        % Refractive index at sample
 lambda=0.525;   % Wavelength in um
 zrange=7;          % distance either side of focus to calculate  
 dz=0.2;             % step size in axial direction of PSF (um)
-
-show=1; % mettre show =1 pour visualiser le PSF et le OTF , si non show=0
-
-[img,aotf,psf,ADN]=Simulation3D(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,show);
+radius=300;
+prune=true;
+[psf,dxn,Nz]=model_PSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+[img,ADN]=Simulation3D(ADN,N,zrange, radius, prune, psf,dxn,Nz);
 
 figure;
 plot3(ADN(:,1),ADN(:,2),ADN(:,3),'.g','MarkerSize',7); % plot ADN sur chaine de chromatine
@@ -51,8 +53,8 @@ disp(['DNA number is : ', num2str(size(ADN,1))]);
 
 figure;
 imshow(sum(img,3),[]);
-% figure;
-% imshow(squeeze(sum(img,2)),[]);
+figure;
+imshow(squeeze(sum(img,2)),[]);
 
 %% saving image stack
 disp('saving image stack')
