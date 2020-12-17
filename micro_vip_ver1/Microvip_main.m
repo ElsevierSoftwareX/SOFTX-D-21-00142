@@ -58,12 +58,12 @@ n=1.33;         % Refractive index at sample        % Refractive index at sample
 lambda=0.5;   % Wavelength in um
 zrange=5;          % distance either side of focus to calculate  
 dz=0.3;             % step size in axial direction of PSF (um)
-tau=100;       %% parameter of photobealching, bleaching time constant (tau) (1/tau en ms)
+tau=100;       %% Average time before bleaching (tau) (in frames)
 nphot = 100; % expected number of photons at brightest points in image (param of poisson noise):shot noise
 Var_GN=0.5; % values of STD of additive gaussian noise,% thermal and read background noise)
 Mean_GN=0; %values of Meanof additive gaussian noise,% thermal and read background noise)
 Cell_speed=20; % cell speed inside microfluidic system um/s
-shutter_speed=200;  % caracteristic of camera
+shutter_speed=200;  % caracteristic of camera (frames/s)
 microscope=3;
 [img,VT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope);
 

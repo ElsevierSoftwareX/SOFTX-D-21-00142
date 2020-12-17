@@ -16,7 +16,7 @@ function micro_img_simulation_standalone(dna_csv,lambda,n,NA,pixelsize, ...
 % N: ouput image xy dimensions
 % zrange: distance either side of focus to calculate 
 % dz : step size in axial direction of PSF (um)
-% tau : bleaching time constant, photobealching (1/tau en ms) ,
+% tau : Average bleaching time (s) ,
 % characteristic of fluofore. If 0, no photobleaching.
 % nphot : expected number of photons at brightest points in image (param of
 % poisson noise): shot noise. If 0, no Poisson noise
@@ -106,6 +106,8 @@ end
 if isstring(microscope) || ischar(microscope)
     microscope = str2double(microscope);
 end
+% Convert tau in frames
+tau = tau * shutter_speed;
 markers_scaled = csvread(dna_csv);
 % Run application
 [img,GT,psf] = Micro_img_simulation(markers_scaled, lambda, n, NA, ...
@@ -114,34 +116,10 @@ markers_scaled = csvread(dna_csv);
 save(output_files_prefix + ".mat", 'img', 'GT', 'psf')
 %% saving simulated image stacks
 disp('saving simulated microscope image')
-filename = output_files_prefix + "img.tif";
-if isfile(filename)
-    % Overwrite image
-    delete(filename);
-end
-for ii=1:size(img, 3)
-    imwrite(uint16(65535* mat2gray(img(:,:,ii))),filename,'WriteMode','append'); 
-end 
-
+mat2tif(output_files_prefix + "img.tif", img)
 %% saving psf
 disp('saving PSF image stack')
-filename = output_files_prefix + "psf.tif";
-if isfile(filename)
-    % Overwrite image
-    delete(filename);
-end
-for ii=1:size(psf, 3)
-    imwrite(uint16(65535* mat2gray(psf(:,:,ii))),filename,'WriteMode','append'); 
-end 
- 
- 
+mat2tif(output_files_prefix + "psf.tif", psf)
 %%  saving GT
 disp('saving Ground truth image stack')
-filename = output_files_prefix + "GT.tif";
-if isfile(filename)
-    % Overwrite image
-    delete(filename);
-end
-for ii=1:size(GT, 3)
-    imwrite(uint16(65535* mat2gray(GT(:,:,ii))),filename,'WriteMode','append'); 
-end
+mat2tif(output_files_prefix + "GT.tif", GT)
