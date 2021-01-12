@@ -1,4 +1,4 @@
-function [img,VT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope)
+function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope)
 % microscope=1 : widefield (WF) (Fast),
 % microscope=2 confocal (CF) (a litle bit slow: nyquest samplate rate is smaller then the case of WF
 % microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
@@ -51,8 +51,8 @@ if microscope~=4
             points2img = points2img+pxyz;      
     end
     %% GT
-    VT=fftshift(abs(ifftn(points2img,[N N Nz])));
-     %% Cr�ation de l'image microscopique finale: 
+    %VT=fftshift(abs(ifftn(points2img,[N N Nz])));    
+    %% Cr�ation de l'image microscopique finale: 
     disp('Creating 3D microscopy image');
     ootf = fftshift(otf) .*points2img;
     img = abs(ifftn(ootf,[N N Nz]));  
@@ -60,8 +60,25 @@ if microscope~=4
 else
      disp('Simulating LSF 3 beam PSF model');
     [img,VT,psf,dxn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz);
-end 
+end
 
+%%GT
+fluo_z = ADN(:, 3);
+fluo_coords = ADN(:, 1:2);
+% Scale coordinates in pixels
+fluo_pixels = fluo_coords * magnification / pixelsize;
+% Shift to center in the image
+fluo_pixels = ceil(fluo_pixels + N/2);
+fluo_frame = ceil((fluo_z + zrange) / dz);
+n_frames = length(-zrange:dz:zrange);
+in_image = all(fluo_pixels > 0, 2)  & all(fluo_pixels <= N, 2) ...
+    & (fluo_frame > 0) & (fluo_frame <= n_frames);
+fluo_coords = fluo_pixels(in_image,:);
+fluo_z = fluo_frame(in_image,:);
+GT = zeros(N, N, n_frames);
+fluo_indices = sub2ind([N, N, n_frames], fluo_coords(:, 1), ...
+    fluo_coords(:, 2), fluo_z);
+GT(fluo_indices) = 1;
 %% photobleaching
 if tau
     disp('Adding photo bleaching...');
