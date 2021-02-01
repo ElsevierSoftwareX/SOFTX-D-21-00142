@@ -1,0 +1,4 @@
+zrange have been added to the FOV
+
+motion blur changed to use dzn instead of dxn for the calculation of the size in pixel, cz the blur is in z direction 
+cell rotation considered negligeable (tetha=0) , if motion blur size depends on YandZ pixel size. 
