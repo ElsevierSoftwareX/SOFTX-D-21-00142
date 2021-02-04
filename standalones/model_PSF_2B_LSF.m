@@ -1,4 +1,4 @@
-function [psf,dxn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
 % SIM psf calculation for 3-phase dual beam SIM with light sheet
 % illumination and 2 in plane illumination beams over a single and 3
 % illumination angles.

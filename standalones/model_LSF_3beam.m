@@ -1,4 +1,4 @@
-function [img,VT,psf,dxn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz)
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
@@ -122,14 +122,14 @@ for j = 1:7
 end
 
 
-
-%% calculate VT
-
-VT= zeros(N,N,Nz*7,'single');
-
-for j = 1:7
-    VTootf = (phase(:,:,:,j));
-    VT(:,:,j:7:end) =fftshift( abs(ifftn(VTootf,[N N Nz])));           
-end
+% 
+% %% calculate VT
+% 
+% VT= zeros(N,N,Nz*7,'single');
+% 
+% for j = 1:7
+%     VTootf = (phase(:,:,:,j));
+%     VT(:,:,j:7:end) =fftshift( abs(ifftn(VTootf,[N N Nz])));           
+% end
 
 end 

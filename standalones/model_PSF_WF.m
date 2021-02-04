@@ -1,4 +1,4 @@
-function [psf,dxn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
