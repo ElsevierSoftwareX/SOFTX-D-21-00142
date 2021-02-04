@@ -1,4 +1,4 @@
-function [img,VT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope)
+function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope)
 % microscope=1 : widefield (WF) (Fast),
 % microscope=2 confocal (CF) (a litle bit slow: nyquest samplate rate is smaller then the case of WF
 % microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
@@ -12,13 +12,13 @@ function [img,VT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnificati
 if microscope~=4
     if microscope==1
         disp('Simulating WF PSF model');
-    [psf,dxn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
     elseif microscope==2
         disp('Simulating CF PSF model');
-    [psf,dxn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
     elseif microscope==3
            disp('Simulating LSF 2 beam PSF model');
-    [psf,dxn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
     end 
     %% conversion de  la nuages do point dans une image en espace de fourier
     Nn=size(psf,1);
@@ -51,17 +51,46 @@ if microscope~=4
             points2img = points2img+pxyz;      
     end
     %% GT
-    VT=fftshift(abs(ifftn(points2img,[N N Nz])));
-     %% Cr�ation de l'image microscopique finale: 
+    %VT=fftshift(abs(ifftn(points2img,[N N Nz])));    
+    %% Cr�ation de l'image microscopique finale: 
     disp('Creating 3D microscopy image');
     ootf = fftshift(otf) .*points2img;
     img = abs(ifftn(ootf,[N N Nz]));  
 %%
 else
      disp('Simulating LSF 3 beam PSF model');
-    [img,VT,psf,dxn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz);
-end 
+    [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+end
 
+%%GT
+N = size(img, 1);
+n_frames = size(img, 3);
+if microscope==4
+    n_frames = n_frames / 7; % 7 phase shifts
+end
+fluo_z = ADN(:, 3);
+fluo_coords = ADN(:, 1:2);
+% Scale coordinates in pixels
+fluo_pixels = fluo_coords * magnification / pixelsize;
+fluo_frame = fluo_z / dz;
+% Shift to center in the image
+fluo_pixels = ceil(fluo_pixels + N/2);
+fluo_frame = ceil(fluo_frame + n_frames/2);
+in_image = all(fluo_pixels > 0, 2)  & all(fluo_pixels <= N, 2) ...
+    & (fluo_frame > 0) & (fluo_frame <= n_frames);
+fluo_coords = fluo_pixels(in_image,:);
+fluo_z = fluo_frame(in_image,:);
+GT = zeros(N, N, n_frames);
+fluo_indices = sub2ind([N, N, n_frames], fluo_coords(:, 1), ...
+    fluo_coords(:, 2), fluo_z);
+GT(fluo_indices) = 1;
+if microscope==4
+    % duplicate each frame 7 times
+    reshaped = reshape(GT, N*N, []); % reshape in 2D : 1 column for each frame
+    reshaped = repmat(reshaped, 7, 1); % repeat each column 7 times
+    GT = reshape(reshaped, N, N, []); % reshape in correct dimansions
+end
+ 
 %% photobleaching
 if tau
     disp('Adding photo bleaching...');
@@ -73,13 +102,11 @@ end
 if Cell_speed
     shutter_speed=1/shutter_speed; 
     mbz_um=Cell_speed*shutter_speed; % motion blur size 
-
-    mbz_px=ceil(mbz_um/dxn);  
-    orient=randi([0 180],1); % orientation de motion blur 
-    MB=fspecial('motion',mbz_px,orient); 
+    mbz_px=ceil(mbz_um/dzn); 
+    MB=fspecial('motion',mbz_px, 0); 
     disp(['Adding motion blur. Pixel length is ',num2str(mbz_px),' pixels']);% and orientation is ',num2str(orient)]);
     parfor it=1:size(img,1)
-        img(it,:,:)=conv2(squeeze(img(it,:,:)),MB,'same');  
+        img(it,:,:)=conv2(squeeze(img(it,:,:)),MB,'same');   % motion blur applied to YZ
     end 
 end
  

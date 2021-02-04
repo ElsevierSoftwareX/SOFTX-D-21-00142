@@ -99,7 +99,11 @@ for slice_index = 1:n_slices
     timeTraces = stacks.discrete;
     stacks_discrete = double(timeTraces);
     max_digTT = max(stacks_discrete(:));min_digTT = min(stacks_discrete(:));
-    stacks_discrete = (stacks_discrete - min_digTT) / (max_digTT - min_digTT);
+    if max_digTT > 30
+        stacks_discrete = (stacks_discrete - min_digTT) / (max_digTT - min_digTT);
+    else
+        stacks_discrete = zeros(size(stacks_discrete));
+    end
     clear max_digTT min_digTT;
     %% Results menu
     % Ground truth
@@ -117,68 +121,74 @@ for slice_index = 1:n_slices
         all_widefield = zeros([size(widefield), n_slices]);
     end
     all_widefield(:, :, slice_index) = widefield;
-    if contains(type,"sofi",'IgnoreCase',true)
-        %% SOFI_Calculation
-        fwhm = Optics.fwhm_digital;
-        SOFI = struct();
-        % SOFI orders to compute
-        orders = 1:7;
-        % ---- CROSS-CUMULANTS computation ----
-        % 2nd order cross-cumulants of pixel time traces 
-        [SOFI.cumulants_traces] = sofiCumulants2D_traces(timeTraces);
-        % cross-cumulants of pixel timeTraces integrated over time
-        [SOFI.cumulants, ~]=sofiCumulants(timeTraces, [], [], [], ...
-            orders, false, false);
-        % cross-cumulants flattened
-        SOFI.flattened=sofiAllFlatten(SOFI.cumulants);
-        % cross-cumulants linearized
-        SOFI.linearized=sofiLinearize(SOFI.flattened,fwhm);
-        % cross-cumulants reconvolution
-        SOFI.reconvolved=sofiReconvolution(SOFI.linearized,fwhm);
-        % parameters of the fluorophores extracted
-        [SOFI.fluo_ratio,~,~]=sofiParameters(SOFI.linearized);
-        % bSOFI
-        SOFI.balanced=sofiBalance(SOFI.reconvolved,SOFI.fluo_ratio);
-        % Update SOFI
-        if slice_bottom == -zrange % Only for first iteration
-                all_sofi = cell(1, length(orders));
-        end
-        for current_ord = orders
-            sofi = SOFI.cumulants{current_ord};
-            % Normalization and Contrast Adjustment
-            sofi(sofi<0)=0;
-            sofi = sofi/max(sofi(:));
-            sofi = imadjust(sofi,[min(sofi(:));max(sofi(:))],[0;1]);
+    if any(stacks_discrete(:)) | (slice_bottom == -zrange)
+        % Calculation needs to be perform only if there is a signal and
+        % not nly noise. 
+        % Exception, we always perform on first iteration to initialize
+        % all matrices and structures
+        if contains(type,"sofi",'IgnoreCase',true)
+            %% SOFI_Calculation
+            fwhm = Optics.fwhm_digital;
+            SOFI = struct();
+            % SOFI orders to compute
+            orders = 1:7;
+            % ---- CROSS-CUMULANTS computation ----
+            % 2nd order cross-cumulants of pixel time traces 
+            %[SOFI.cumulants_traces] = sofiCumulants2D_traces(stacks_discrete);
+            % cross-cumulants of pixel timeTraces integrated over time
+            [SOFI.cumulants, ~]=sofiCumulants(stacks_discrete, [], [], [], ...
+                orders, false, false);
+            % cross-cumulants flattened
+            SOFI.flattened=sofiAllFlatten(SOFI.cumulants);
+            % cross-cumulants linearized
+            SOFI.linearized=sofiLinearize(SOFI.flattened,fwhm);
+            % cross-cumulants reconvolution
+            SOFI.reconvolved=sofiReconvolution(SOFI.linearized,fwhm);
+            % parameters of the fluorophores extracted
+            [SOFI.fluo_ratio,~,~]=sofiParameters(SOFI.linearized);
+            % bSOFI
+            SOFI.balanced=sofiBalance(SOFI.reconvolved,SOFI.fluo_ratio);
+            % Update SOFI
             if slice_bottom == -zrange % Only for first iteration
-                all_sofi{current_ord} = zeros([size(sofi), n_slices]);
+                    all_sofi = cell(1, length(orders));
             end
-            all_sofi{current_ord}(:, :, slice_index) = sofi;
+            for current_ord = orders
+                sofi = SOFI.cumulants{current_ord};
+                % Normalization and Contrast Adjustment
+                sofi(sofi<0)=0;
+                sofi = sofi/max(sofi(:));
+                sofi = imadjust(sofi,[min(sofi(:));max(sofi(:))],[0;1]);
+                if slice_bottom == -zrange % Only for first iteration
+                    all_sofi{current_ord} = zeros([size(sofi), n_slices]);
+                end
+                all_sofi{current_ord}(:, :, slice_index) = sofi;
+            end
+            bsofi = SOFI.balanced;
+            % Normalization and Contrast Adjustment
+            bsofi(bsofi<0)=0;
+            bsofi = bsofi/max(bsofi(:));
+            bsofi = imadjust(bsofi,[min(bsofi(:));max(bsofi(:))],[0;1]);
+            if slice_bottom == -zrange % Only for first iteration
+                all_bsofi = zeros([size(bsofi), n_slices]);
+            end
+            all_bsofi(:, :, slice_index) = bsofi;
         end
-        bsofi = SOFI.balanced;
-        % Normalization and Contrast Adjustment
-        bsofi(bsofi<0)=0;
-        bsofi = bsofi/max(bsofi(:));
-        bsofi = imadjust(bsofi,[min(bsofi(:));max(bsofi(:))],[0;1]);
-        if slice_bottom == -zrange % Only for first iteration
-            all_bsofi = zeros([size(bsofi), n_slices]);
+        if contains(type,"storm",'IgnoreCase',true)
+            %% STROM_Calculations
+            storm = STORMcalculations([],false, stacks_discrete, Optics, Fluo);
+            % Update STORM
+            % Normalization and Contrast adjustment
+            storm = storm./(max((storm(:))));
+            if slice_bottom == -zrange % Only for first iteration
+                all_storm = zeros([size(storm), n_slices]);
+            end
+            if all(isnan(storm))
+                % Empty matrix if storm failed
+                warning("STORM calculation failed, probably too many fluorophores to perform localization")
+            else
+                all_storm(:, :, slice_index) = storm;
+            end    
         end
-        all_bsofi(:, :, slice_index) = bsofi;
-    end
-    if contains(type,"storm",'IgnoreCase',true)
-        %% STROM_Calculations
-        storm = STORMcalculations([],false, timeTraces, Optics, Fluo);
-        % Update STORM
-        % Normalization and Contrast adjustment
-        storm = storm./(max((storm(:))));
-        if slice_bottom == -zrange % Only for first iteration
-            all_storm = zeros([size(storm), n_slices]);
-        end
-        if all(isnan(storm))
-            % Empty matrix if storm failed
-            warning("STORM calculation failed, probably too many fluorophores to perform localization")
-        else
-            all_storm(:, :, slice_index) = storm;
-        end    
     end
 end
 mat2tif(output_prefix + "GT.tif", all_samples)

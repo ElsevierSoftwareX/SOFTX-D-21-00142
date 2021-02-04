@@ -54,10 +54,10 @@ fRes = 7;
 Ihr=zeros(k*fRes,l*fRes);
 
 % normalize the discrete time traces between 0 and 1
-stack = double(stack);
-max_digTT = max(stack(:));min_digTT = min(stack(:));
-stack = (stack - min_digTT) / (max_digTT - min_digTT);
-clear max_digTT min_digTT;
+% stack = double(stack);
+% max_digTT = max(stack(:));min_digTT = min(stack(:));
+% stack = (stack - min_digTT) / (max_digTT - min_digTT);
+% clear max_digTT min_digTT;
 
 if display
     fig=statusbar('STORM calculations...');
