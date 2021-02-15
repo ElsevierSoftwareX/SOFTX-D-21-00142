@@ -1,4 +1,5 @@
-function [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,...
+    magnification,N,zrange,dz, fwhmz)
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
@@ -20,7 +21,17 @@ csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 
 
 alpha=asin(NA/n);
-dzn=lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
+%% IF LIGHT SHEET
+if fwhmz
+    disp('Light SHEET MODE: ON');
+    dzn=0.8*lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
+    sigmaz=fwhmz/2.355;
+else 
+    disp('Light SHEET MODE: OFF');
+    sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
+    dzn=lambda/(2*n*(1-cos(alpha)));    
+end
+%%
 Nz=2*ceil(zrange/dz);
 dz=2*zrange/Nz;
 Nzn=2*ceil(zrange/dzn);

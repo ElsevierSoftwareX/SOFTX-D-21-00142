@@ -1,4 +1,5 @@
-function [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize, ...
+    magnification,N,zrange,dz, fwhmz)
 % SIM psf calculation for 3-phase dual beam SIM with light sheet
 % illumination and 2 in plane illumination beams over a single and 3
 % illumination angles.
@@ -25,7 +26,17 @@ sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sig
 % Raw pupil function, pupil defined over circle of radius 1.
 csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 alpha=asin(NA/n);
-dzn=0.8*lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
+%% IF LIGHT SHEET
+if fwhmz
+    disp('Light SHEET MODE : ON');
+    dzn=0.8*lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
+    sigmaz=fwhmz/2.355;
+else 
+    disp('Light SHEET MODE: OFF');
+    sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
+    dzn=lambda/(2*n*(1-cos(alpha)));    
+end 
+%%
 Nzn=2*ceil(zrange/dzn);
 Nz=max(2*ceil(zrange/dz), Nzn);
 dzn=2*zrange/Nzn;

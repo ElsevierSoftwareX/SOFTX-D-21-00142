@@ -1,9 +1,9 @@
-function ADN=inter_inFOV(ADN, radius, prune)
+function ADN=inter_inFOV(ADN, cell_size, radius, prune)
 % prune - logical (optional) : if true, we will cut everything further from the center
-if nargin < 2
+if nargin < 3
     radius = 300;
 end
-if nargin < 3
+if nargin < 4
     prune=true;
 end
 %% sim_img : image simul�e
@@ -23,7 +23,7 @@ pts=XYZnew'; %% rotated 3D point cloud
 if prune
     maxes = max(abs(pts));
 else
-    maxes = [300,300,300];
+    maxes = [radius,radius,radius];
 end
-ADN = pts./maxes.*5;
+ADN = pts./maxes.*cell_size;
 end 

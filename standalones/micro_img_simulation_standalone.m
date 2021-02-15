@@ -1,7 +1,7 @@
 function micro_img_simulation_standalone(dna_csv,lambda,n,NA,pixelsize, ...
     magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed, ...
-    shutter_speed,microscope, output_files_prefix, seed, streamIndex, ...
-    numStreams)
+    shutter_speed, fwhmz, microscope, output_files_prefix, seed, ...
+    streamIndex, numStreams)
 % Calls Micro_img_simulation and store outputs in a .mat and three .tif files
 % This is meant to be packaged as a standalone application
 % INPUTS:
@@ -30,9 +30,11 @@ function micro_img_simulation_standalone(dna_csv,lambda,n,NA,pixelsize, ...
 % microscope: for microscopy type:
 %   microscope=1 : widefield (WF) (Fast),
 %   microscope=2 confocal (CF) (a litle bit slow: nyquest samplate rate is smaller then the case of WF
-%   microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
-%   microscope=4 LSF avec 3 beam (very slow due to 7 phase shift) 
-
+%   microscope=3 2 beam SIM  ( 3 phase shift) (Fast)
+%   microscope=4 3 beam SIM (very slow due to 7 phase shift) 
+% fwhmz: Full width half maximum of PSF in z for light sheet microscopy.
+% Should be 0 if light-sheet is not used. Available only for widefield and
+% SIM
 % output_files_prefix - path to the output files to save will be of the
 % form: output_files_prefix + ".mat" for the .mat file containing 'img' ,'
 % GT' and 'psf' the matrices of microscopy image stack, ground truth image
@@ -106,13 +108,16 @@ end
 if isstring(microscope) || ischar(microscope)
     microscope = str2double(microscope);
 end
+if isstring(fwhmz) || ischar(fwhmz)
+    fwhmz = str2double(fwhmz);
+end
 % Convert tau in frames
 tau = tau * shutter_speed;
 markers_scaled = csvread(dna_csv);
 % Run application
 [img,GT,psf] = Micro_img_simulation(markers_scaled, lambda, n, NA, ...
     pixelsize, magnification, N, zrange, dz, tau, nphot, Var_GN, ...
-    Mean_GN, Cell_speed, shutter_speed, microscope);
+    Mean_GN, Cell_speed, shutter_speed, microscope, fwhmz);
 save(output_files_prefix + ".mat", 'img', 'GT', 'psf')
 %% saving simulated image stacks
 disp('saving simulated microscope image')

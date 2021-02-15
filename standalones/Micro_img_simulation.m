@@ -1,4 +1,6 @@
-function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed,shutter_speed,microscope)
+function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize, ...
+    magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed, ...
+    shutter_speed,microscope, fwhmz)
 % microscope=1 : widefield (WF) (Fast),
 % microscope=2 confocal (CF) (a litle bit slow: nyquest samplate rate is smaller then the case of WF
 % microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
@@ -12,13 +14,15 @@ function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize,magnificati
 if microscope~=4
     if microscope==1
         disp('Simulating WF PSF model');
-    [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N, ...
+        zrange,dz, fwhmz);
     elseif microscope==2
         disp('Simulating CF PSF model');
     [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
     elseif microscope==3
            disp('Simulating LSF 2 beam PSF model');
-    [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize, ...
+        magnification,N,zrange,dz, fwhmz);
     end 
     %% conversion de  la nuages do point dans une image en espace de fourier
     Nn=size(psf,1);
@@ -59,7 +63,8 @@ if microscope~=4
 %%
 else
      disp('Simulating LSF 3 beam PSF model');
-    [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize,magnification,N,zrange,dz);
+    [img,psf,dzn]=model_LSF_3beam(ADN,lambda,n,NA,pixelsize, ...
+        magnification,N,zrange,dz, fwhmz);
 end
 
 %%GT

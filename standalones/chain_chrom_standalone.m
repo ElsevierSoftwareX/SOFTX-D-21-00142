@@ -1,5 +1,5 @@
 function chain_chrom_standalone(distribfun,DC, radius, prune,  ...
-    output_file, seed, streamIndex, numStreams)
+    cell_distrib, output_file, seed, streamIndex, numStreams)
 % Calls chain_chrom and store outputs in a .mat file
 % This is meant to be packaged as a standalone applicatio
 % INPUTS:
@@ -8,6 +8,7 @@ function chain_chrom_standalone(distribfun,DC, radius, prune,  ...
 % along a chromatin chain will follow a uniform distribution from 0 to
 % 10. distribfun should not have parameters.
 % DC - number of chromatin chains to generate
+% cell_distrib - distribution function for cell size in each direction
 % output_file - path to the output .mat file to save
 
 if nargin < 6
@@ -40,9 +41,13 @@ end
 if isstring(prune) || ischar(prune)
     prune = logical(str2double(prune));
 end
+if isstring(cell_distrib) || ischar(cell_distrib)
+    cell_distrib = str2func(cell_distrib);
+end
 % Run application
 [~, markers_raw]=chain_chrom(distribfun,DC);
-markers_scaled = inter_inFOV(markers_raw, radius, prune);
+cell_sizes = [cell_distrib(), cell_distrib(), cell_distrib()]
+markers_scaled = inter_inFOV(markers_raw, cell_sizes, radius, prune);
 csvwrite(output_file, markers_scaled)
 %save(output_file, 'chains', 'markers_raw', 'markers_scaled')
 
