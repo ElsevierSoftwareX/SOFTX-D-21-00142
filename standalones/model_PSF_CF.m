@@ -2,11 +2,11 @@ function [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrang
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
-dxn = lambda/(8*NA);          % 2*Nyquist frequency in x and y. ( nyquest frequency = res/4 confocal case) 
+dxn = lambda/(4*NA);          % 2*Nyquist frequency in x and y. ( nyquest frequency = res/4 confocal case) 
 Nn = ceil(N*dx/dxn/2)*2;      % Number of points at Nyquist sampling, even number ( Nyquist rate = 1/ 2*dxn); and nyquest sampling is perfect if was > 2* nyquest rate);; 
 %%https://svi.nl/NyquistRate
 dxn = N*dx/Nn;                % correct spacing
-res = 0.353*(lambda)/(NA);           %% lateral resolution  wide field
+res = 0.41*(lambda)/(NA);           %% lateral resolution  wide field
 
 oversampling = res/dxn;       % factor by which pupil plane oversamples the coherent psf data
 
@@ -20,7 +20,7 @@ csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 
 
 alpha=asin(NA/n);
-dzn=lambda/(4*n*(1-cos(alpha)));    % Nyquist sampling in z, 
+dzn=lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, 
 Nzn=2*ceil(zrange/dzn);
 dzn=2*zrange/Nzn;
 Nz=max(2*ceil(zrange/dz), Nzn);
