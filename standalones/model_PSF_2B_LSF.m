@@ -19,10 +19,6 @@ oversampling = res/dxn;       % factor by which pupil plane oversamples the cohe
 dk=oversampling/(Nn/2);       % Pupil plane sampling
 [kx,ky] = meshgrid(-dk*Nn/2:dk:dk*Nn/2-dk,-dk*Nn/2:dk:dk*Nn/2-dk);
 kr=sqrt(kx.^2+ky.^2); 
-
-
-
-sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
 % Raw pupil function, pupil defined over circle of radius 1.
 csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
 alpha=asin(NA/n);
@@ -37,8 +33,8 @@ else
     dzn=lambda/(2*n*(1-cos(alpha)));    
 end 
 %%
+Nz=2*ceil(zrange/dz);
 Nzn=2*ceil(zrange/dzn);
-Nz=max(2*ceil(zrange/dz), Nzn);
 dzn=2*zrange/Nzn;
 
 clear psf;
@@ -69,8 +65,6 @@ for z = -zrange:dzn:zrange-dzn
     
     nz = nz+1; 
 end
-
-pupil = (kr<1);
 % Normalised so power in resampled psf (see later on) is unity in focal plane
 psf = psf * Nn^2/sum(pupil(:))*Nz/Nzn; 
 end 

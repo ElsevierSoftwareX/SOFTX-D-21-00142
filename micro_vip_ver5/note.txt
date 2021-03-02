@@ -1,0 +1,9 @@
+Z spacing (dz) changed for microfludic case
+
+dz=cell speed * time to acquire one frame; 
+
+
+
+
+
+

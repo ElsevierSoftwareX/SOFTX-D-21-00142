@@ -17,9 +17,6 @@ dk=oversampling/(Nn/2);       % Pupil plane sampling
 kr=sqrt(kx.^2+ky.^2); 
 
 % Raw pupil function, pupil defined over circle of radius 1.
-csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
-
-
 alpha=asin(NA/n);
 %% IF LIGHT SHEET
 if fwhmz
@@ -36,17 +33,9 @@ Nz=2*ceil(zrange/dz);
 dz=2*zrange/Nz;
 Nzn=2*ceil(zrange/dzn);
 dzn=2*zrange/Nzn;
-if Nz < Nzn
-    Nz = Nzn;
-    dz = dzn;
-end
 clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
-
-%fwhmz=(2*n*lambda)/NA^2;
-%sigmaz=fwhmz/2.355;
-sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
 
 pupil = (kr<1);
 
@@ -69,9 +58,6 @@ psf = psf * Nn^2/sum(pupil(:))*Nz/Nzn;
 %% Calculate 3D-OTF
 disp('Creating 3D OTF');
 otf = fftn(psf);
-aotf = abs(fftshift(otf));
-
-
 
 xyrange = Nn/2*dxn;
 dkxy = pi/xyrange;
@@ -81,8 +67,6 @@ kz = -Nzn/2*dkz:dkz:(Nzn/2-1)*dkz;
 
 
 phasetilts=complex(single(zeros(Nn,Nn,Nzn,7)));
-phase=complex(single(zeros(Nn,Nn,Nzn,7))); %vt
-
 eta=1;
 points=ADN;
 npoints=size(ADN,1);
@@ -114,7 +98,6 @@ parfor j = 1:7
              pxyzvt(:,:,ii) = pxy.*pzvt(ii);%vt
         end
         phasetilts(:,:,:,j) = phasetilts(:,:,:,j)+pxyz;
-        phase(:,:,:,j) = phase(:,:,:,j)+pxyzvt; % vt
     end
 end
 

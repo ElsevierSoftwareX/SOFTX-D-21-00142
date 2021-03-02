@@ -1,6 +1,6 @@
 function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize, ...
     magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed, ...
-    shutter_speed,microscope, fwhmz)
+    shutter_speed, frame_rate, microscope, fwhmz)
 % microscope=1 : widefield (WF) (Fast),
 % microscope=2 confocal (CF) (a litle bit slow: nyquest samplate rate is smaller then the case of WF
 % microscope=3 LSF avec 2 beam  ( 3 phase shift) (Fast)
@@ -10,19 +10,35 @@ function [img,GT,psf]=Micro_img_simulation(ADN,lambda,n,NA,pixelsize, ...
 % nphot = 0 for no Poisson noise
 % Var_GN = 0 AND Mean_GN = 0 for no Gaussian noise
 
+if Cell_speed
+    if microscope == 2
+        warning("Confocal mcroscope can't be used with microfluidics" ...
+            + "\n cell speed will be considered to be 0.")
+        Cell_speed=0;
+    else
+        disp("Using microfluidics, dz willl be determined from cell "...
+            + "speed and frame rate.")
+        dz=Cell_speed/frame_rate;
+    end
+end
 %% mod�lisation de PSF
 if microscope~=4
-    if microscope==1
-        disp('Simulating WF PSF model');
-    [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize,magnification,N, ...
-        zrange,dz, fwhmz);
-    elseif microscope==2
-        disp('Simulating CF PSF model');
-    [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz);
-    elseif microscope==3
+    switch(microscope)
+        case{1}
+            disp('Simulating WF PSF model');
+            [psf,dxn, dzn]=model_PSF_WF(lambda,n,NA,pixelsize, ...
+                magnification,N, zrange,dz, fwhmz);
+        case{2}
+            disp('Simulating CF PSF model');
+            [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize, ...
+                magnification,N, zrange,dz, fwhmz);
+        case{3}
            disp('Simulating LSF 2 beam PSF model');
-    [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize, ...
-        magnification,N,zrange,dz, fwhmz);
+           [psf,dxn, dzn]=model_PSF_2B_LSF(lambda,n,NA,pixelsize, ...
+               magnification,N,zrange,dz, fwhmz);
+        otherwise
+            error("Unknown microscope type: %i\nmicroscope must be " ...
+                + "1, 2, 3 or 4", microscope)
     end 
     %% conversion de  la nuages do point dans une image en espace de fourier
     Nn=size(psf,1);

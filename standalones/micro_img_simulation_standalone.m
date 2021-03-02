@@ -1,6 +1,6 @@
 function micro_img_simulation_standalone(dna_csv,lambda,n,NA,pixelsize, ...
     magnification,N,zrange,dz,tau,nphot,Var_GN,Mean_GN,Cell_speed, ...
-    shutter_speed, fwhmz, microscope, output_files_prefix, seed, ...
+    shutter_speed, frame_rate, fwhmz, microscope, output_files_prefix, seed, ...
     streamIndex, numStreams)
 % Calls Micro_img_simulation and store outputs in a .mat and three .tif files
 % This is meant to be packaged as a standalone application
@@ -105,6 +105,9 @@ end
 if isstring(shutter_speed) || ischar(shutter_speed)
     shutter_speed = str2double(shutter_speed);
 end
+if isstring(frame_rate) || ischar(frame_rate)
+    frame_rate = str2double(frame_rate);
+end
 if isstring(microscope) || ischar(microscope)
     microscope = str2double(microscope);
 end
@@ -117,7 +120,7 @@ markers_scaled = csvread(dna_csv);
 % Run application
 [img,GT,psf] = Micro_img_simulation(markers_scaled, lambda, n, NA, ...
     pixelsize, magnification, N, zrange, dz, tau, nphot, Var_GN, ...
-    Mean_GN, Cell_speed, shutter_speed, microscope, fwhmz);
+    Mean_GN, Cell_speed, shutter_speed, frame_rate, microscope, fwhmz);
 save(output_files_prefix + ".mat", 'img', 'GT', 'psf')
 %% saving simulated image stacks
 disp('saving simulated microscope image')

@@ -1,4 +1,5 @@
-function [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize,magnification,N,zrange,dz)
+function [psf,dxn, dzn]=model_PSF_CF(lambda,n,NA,pixelsize, ...
+    magnification, N,zrange,dz, fwhmz)
 %% fonction qui mod�lise le PSF / le otf est le fft de PSF
 
 dx=pixelsize/magnification;     % Sampling in lateral plane at the sample in um
@@ -16,26 +17,26 @@ dk=oversampling/(Nn/2);       % Pupil plane sampling
 kr=sqrt(kx.^2+ky.^2); 
 
 % Raw pupil function, pupil defined over circle of radius 1.
-csum=sum(sum((kr<1))); % normalise by csum so peak intensity is 1
-
-
 alpha=asin(NA/n);
-dzn=lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, 
+%% IF LIGHT SHEET
+if fwhmz
+    disp('Light SHEET MODE: ON');
+    dzn=0.8*lambda/(2*n*(1-cos(alpha)));    % Nyquist sampling in z, reduce by 10% to account for gaussian light sheet
+    sigmaz=fwhmz/2.355;
+else 
+    disp('Light SHEET MODE: OFF');
+    sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
+    dzn=lambda/(2*n*(1-cos(alpha)));    
+end
+%%
 Nzn=2*ceil(zrange/dzn);
 dzn=2*zrange/Nzn;
-Nz=max(2*ceil(zrange/dz), Nzn);
-
+Nz=2*ceil(zrange/dz);
 clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
 
-%fwhmz=(2*n*lambda)/NA^2;
-%sigmaz=fwhmz/2.355;
-sigmaz=0.53*(n*lambda)/NA^2; %% confocal axial resolution appriximated with sigma
-
 pupil = (kr<1);
-
-
 %% Calculate 3d PSF
 nz = 1;
 disp('Creating 3D PSF');

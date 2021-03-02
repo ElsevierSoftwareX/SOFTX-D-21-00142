@@ -46,7 +46,7 @@ if isstring(cell_distrib) || ischar(cell_distrib)
 end
 % Run application
 [~, markers_raw]=chain_chrom(distribfun,DC);
-cell_sizes = [cell_distrib(), cell_distrib(), cell_distrib()]
+cell_sizes = [cell_distrib(), cell_distrib(), cell_distrib()];
 markers_scaled = inter_inFOV(markers_raw, cell_sizes, radius, prune);
 csvwrite(output_file, markers_scaled)
 %save(output_file, 'chains', 'markers_raw', 'markers_scaled')

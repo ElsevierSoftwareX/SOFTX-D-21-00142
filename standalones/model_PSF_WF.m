@@ -7,7 +7,7 @@ dxn = lambda/(4*NA);          % 2*Nyquist frequency in x and y. ( nyquest freque
 Nn = ceil(N*dx/dxn/2)*2;      % Number of points at Nyquist sampling, even number ( Nyquist rate = 1/ 2*dxn); and nyquest sampling is perfect if was > 2* nyquest rate);; 
 %%https://svi.nl/NyquistRate
 dxn = N*dx/Nn;                % correct spacing
-res = 0.5*(lambda)/(NA);           %% lateral resolution  wide field
+res = 0.61*(lambda)/(NA);           %% lateral resolution  wide field
 
 oversampling = res/dxn;       % factor by which pupil plane oversamples the coherent psf data
 
@@ -32,18 +32,13 @@ else
     dzn=lambda/(2*n*(1-cos(alpha)));    
 end
 %%
+Nz=2*ceil(zrange/dz);
 Nzn=2*ceil(zrange/dzn);
 dzn=2*zrange/Nzn;
-Nz=max(2*ceil(zrange/dz), Nzn);
 
 clear psf;
 psf=zeros(Nn,Nn,Nzn);
 c=zeros(Nn);
-
-%fwhmz=(2*n*lambda)/NA^2;
-%sigmaz=fwhmz/2.355;
-sigmaz=0.75*(n*lambda)/NA^2; %% widefield axial resolution appriximated with sigma
-
 pupil = (kr<1);
 
 
