@@ -1,0 +1,6 @@
+[submodule "MicroscopySimulator/ThirdParty/sofitool"]
+	path = MicroscopySimulator/ThirdParty/sofitool
+	url = https://github.com/lob-epfl/sofitool.git
+[submodule "FeaturesExtractor/ThirdParty/scatnet"]
+	path = FeaturesExtractor/ThirdParty/scatnet
+	url = https://github.com/scatnet/scatnet.git

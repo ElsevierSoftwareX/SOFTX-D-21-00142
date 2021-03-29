@@ -1,2 +1,9 @@
+# Avoid tracking of chromatin database .mat files
+*.mat
+# Avoid tracking of code output files
+*.csv
 *.tif
+*.json
+*.tar
+# Avoid tracking temporary matlab files
 *~
