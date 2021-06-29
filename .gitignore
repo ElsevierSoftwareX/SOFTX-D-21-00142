@@ -1,9 +1,11 @@
-# Avoid tracking of chromatin database .mat files
+# Compiled standalone applications
+Applications/*standalone
+# Chromatin database .mat files
 *.mat
-# Avoid tracking of code output files
+# Code output files
 *.csv
 *.tif
 *.json
 *.tar
-# Avoid tracking temporary matlab files
+# Backup files
 *~

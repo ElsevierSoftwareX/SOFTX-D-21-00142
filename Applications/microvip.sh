@@ -1,0 +1,217 @@
+#!/bin/bash
+#
+# Run MicroVIP complete pipeline, by successively calling wrapper script of each
+# module.
+#
+readonly CURRENT_LOCATION="$(dirname "$0")" || error_exit
+readonly CURRENT_NAME="$(basename "$0")" || error_exit
+
+################################################################################
+# Exit with error status and message.
+# Globals:
+#   CURRENT_NAME
+# Arguments:
+#   None
+# Outputs:
+#   Writes error message to stdout and stderr.
+# Returns:
+#   1
+################################################################################
+function error_exit(){
+  echo "${CURRENT_NAME}: ${1:-"Unknown Error"}" 1>&2
+  exit 1
+}
+
+################################################################################
+# Exit with status 0 after displaying help message.
+# Globals:
+#   CURRENT_LOCATION
+#   CURRENT_NAME
+# Arguments:
+#   None
+# Outputs:
+#   Writes help message to stdout.
+# Returns:
+#   0
+################################################################################
+function usage(){
+  echo "Usage: ${CURRENT_NAME} [OPTION]... PIPELINE CONFIGURATION OUTPUT
+Run MicroVIP modules successively. PIPELINE is 0, 1 or 2 and defines which
+modules are to be run:
+  * 0 runs only ground truth biomarkers position modelling (Cell generator
+    module).
+  * 1 additionally simulates microscopy imaging (Cell generator + Microscopy
+    simulator modules).
+  * 2 also applies common features extraction methods to obtained image (Cell
+    generator + Microscopy simulator + Features extractor modules).
+Parameters of each module are respectively read from CellGenerator, 
+MicroscopySimulator and FeaturesExtractor sections of CONFIGURATION .ini file.
+Outputs of all modules are saved in OUTPUT .tar archive file.
+
+  -h  Display this help and exit.
+  -i=ICELL      Index of the cell being generated. ICELL is an integer between
+                1 and NCELL (see -n option and note on multiple cells 
+                generation below).
+  -m=MODULES    Specify path to directory containing MicroVIP modules wrapper
+                scripts: cellgenerator.sh, microscopysimulator.sh and
+                featuresextractor.sh. If -m is not used, default path is
+                ${CURRENT_LOCATION}.
+  -n=NCELL      Number of cells being generated in different instances of
+                ${CURRENT_NAME} (see note on multiple cells generation below).
+  -p            Call Cell generator module with -p option: prune (remove)
+                biomarkers outside the sphere of radius RADIUS before rescaling
+                (see -r). If -p is not used, biomarkers are not removed, which
+                does not impact cell rescaling but means there will exist
+                biomarkers 'outside the cell'.
+  -r=RADIUS     Call Cell generator module with -r option: when rescaling
+                biomarkers point cloud from arbitrary units to µm, a sphere of
+                radius RADIUS arbitrary units is interpolated into final cell's
+                dimensions. If -r is not used, default RADIUS value is 350.
+  -R=MCRFOLDER  Define MATLAB runtime root folder to extend and export 
+                environment variable LD_LIBRARY_PATH. This is necessary for
+                modules MATALB standalone applications to run properly. If -R is
+                not used, you should ensure LD_LIBRARY_PATH is correctly set or
+                MATLAB runtime will complain about missing libraries.
+  -s=SEED       Set MATLAB random numer generator seed. SEED is an integer
+                between 0 and 2^32 - 1. Use only in conjunction with -i and -n
+                (see note on multiple cells generation below).
+                
+To generate multiple statistically independant cells (in parallel or not), use
+-i, -n and -s. Either all or none of these options must be provided. First,
+determine the number of cells you want to generate NCELL, and a random seed for
+the generation SEED. SEED is an integer between 0 and 2^32 - 1, you can choose a
+specific value for reproducible results (e.g. 1) or a random value (e.g. based
+on current time with command date +%s). Then launch NCELL executions of
+${CURRENT_NAME} as follows:
+  ${CURRENT_NAME} -i 1 -n NCELL -s SEED [OPTION]... PIPELINE CONFIGURATION \
+OUTPUT
+  ${CURRENT_NAME} -i 2 -n NCELL -s SEED [OPTION]... PIPELINE CONFIGURATION \
+OUTPUT
+  ...
+  ${CURRENT_NAME} -i \$((NCELL - 1)) -n NCELL -s SEED [OPTION]... PIPELINE \
+CONFIGURATION OUTPUT
+  ${CURRENT_NAME} -i NCELL -n NCELL -s SEED [OPTION]... PIPELINE CONFIGURATION \
+OUTPUT
+  
+For more information on MicroVIP, including full sources and documentation,
+visit <https://www.creatis.insa-lyon.fr/site7/en/PROCHIP>."
+  exit 0
+}
+
+################################################################################
+# Run given wrapper script with given arguments, after checking its existence.
+# Globals:
+#   CURRENT_NAME
+# Arguments:
+#   Path to wrapper script to run.
+#   Array of arguments for the wrapper script
+# Outputs:
+#   Write wrapper script output to stdout. Write errors to stdout and stderr..
+# Returns:
+#   0 if wrapper script exists and completes with status 0, 1 else.
+################################################################################
+function run_module(){
+  if [[ ! -f "$1" ]]; then
+    error_exit "${LINENO}: $1 does not exist.
+Use -m option to indicate correct path for MicroVIP modules wrapper scripts.
+See ${CURRENT_NAME} -h for help."
+  fi
+  "$@" || error_exit "${LINENO}: $1 exited with non-zero status."
+}
+# -----------------------------------------
+# Process arguments.
+# -----------------------------------------
+echo "Processing arguments."
+# Default values.
+modules_directory="${CURRENT_LOCATION}" # Path to modules wrapper scripts.
+declare -a cell_generator_option # Will contain options -p and -r if needed.
+declare -a mutiple_cell_option # Arguments for multiple cells generation.
+# Process options.
+while getopts "hR:m:r:pi:n:s:" option; do
+  case "${option}" in
+    h)
+      usage
+      ;;
+    R)
+      MCRROOT="${OPTARG}"
+      LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-.}:${MCRROOT}/runtime/glnxa64"
+      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64"
+      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64"
+      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64"
+      export LD_LIBRARY_PATH;
+      echo "LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}";
+      ;;
+    m)
+      modules_directory="${OPTARG/%\//}"
+      ;;
+    r)
+      cell_generator_option+=("-r" "${OPTARG}")
+      ;;
+    p)
+      cell_generator_option+=("-p")
+      ;;
+    i | n | s)
+      mutiple_cell_option+=("-${option}" "${OPTARG}")
+      ;;
+    *)
+      error_exit "${LINENO}: Unknown option '${option}'.
+Try ${CURRENT_NAME} -h for help."
+      ;;
+  esac
+done
+# Check that either all or none of -i, -n and -s have been provided.
+if [[ ! "${#mutiple_cell_option[*]}" =~ 0|6 ]]; then
+  error_exit "${LINENO}: All or none of -n, -i and -s options must be used.
+Try ${CURRENT_NAME} -h for help."
+fi
+# Process positional arguments.
+shift $((OPTIND-1))
+if [ $# -ne 3 ]
+then
+  error_exit "${LINENO}: Incorrect number of input arguments.
+Try ${CURRENT_NAME} -h for help."
+fi
+declare -i pipeline="$1"
+configuration_ini="$2"
+output_tar="$3"
+prefix="${output_tar/%.tar/}."
+# -----------------------------------------
+# Cell generator module.
+# -----------------------------------------
+biomarker_csv="${prefix}csv"
+declare -a all_modules_output=( "${biomarker_csv}" )
+echo "Modelling ground truth biomarkers positions."
+run_module "${modules_directory}/cellgenerator.sh" \
+  "${cell_generator_option[@]}" "${mutiple_cell_option[@]}" \
+  "${configuration_ini}" "${biomarker_csv}"
+# -----------------------------------------
+# Microscopy simulator module.
+# -----------------------------------------
+if [[ ${pipeline} -gt 0 ]]; then
+  ground_truth_tif="${prefix}gt.tif"
+  image_tif="${prefix}img.tif"
+  all_modules_output+=( "${ground_truth_tif}" "${image_tif}")
+  echo "Simulating microscopy image acquisition."
+  run_module "${modules_directory}/microscopysimulator.sh" \
+    "${mutiple_cell_option[@]}" "${biomarker_csv}" "${configuration_ini}" \
+    "${ground_truth_tif}" "${image_tif}"
+  # -----------------------------------------
+  # Features extraction module.
+  # -----------------------------------------
+
+  if [[ ${pipeline} -gt 1 ]]; then
+    features_json="${prefix}json"
+    all_modules_output+=( "${features_json}")
+    echo "Performing features extraction."
+    run_module "${modules_directory}/featuresextractor.sh" "${image_tif}" \
+      "${configuration_ini}" "${features_json}"
+  fi
+fi
+# -----------------------------------------
+# Create results archive.
+# -----------------------------------------
+echo "Archiving results in ${output_tar}."
+tar -cf "${output_tar}" "${all_modules_output[@]}" || error_exit "${LINENO}: \
+Error while creating archive ${output_tar}."
+echo "MicroVIP completed successfully."
+exit 0
