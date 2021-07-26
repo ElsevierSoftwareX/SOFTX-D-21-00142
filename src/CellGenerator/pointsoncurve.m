@@ -24,6 +24,24 @@ function [pointCoordinate] = pointsoncurve(curve, distanceDistribution)
     %   from 0 to 1.
     
     %% License information
+    %   MicroVIP, Microscopy image simulation and analysis tool
+    %   Copyright (C) 2021  Ali Ahmad, Guillaume Vanel,
+    %   CREATIS, Universite Lyon 1, Insa de Lyon, Lyon, France.
+    %
+    %   This file is part of MicroVIP.
+    %   MicroVIP is free software: you can redistribute it and/or modify
+    %   it under the terms of the GNU General Public License as published
+    %   by the Free Software Foundation, either version 3 of the License,
+    %   or any later version.
+    %
+    %   This program is distributed in the hope that it will be useful,
+    %   but WITHOUT ANY WARRANTY; without even the implied warranty of
+    %   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    %   GNU General Public License for more details.
+    %
+    %   You should have received a copy of the GNU General Public License
+    %   <https://www.gnu.org/licenses/>.
+
     % This code is based on following work, modified so that points are not
     % equally spaced but randomly spaced following given input
     % distribution. This means the number of points is not predetermined

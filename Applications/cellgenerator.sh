@@ -3,6 +3,23 @@
 # Run MicroVIP Cell generator module's MATLAB standalone application to generate
 # a ground truth 3D biomarkers point cloud.
 #
+#   MicroVIP, Microscopy image simulation and analysis tool
+#   Copyright (C) 2021  Ali Ahmad, Guillaume Vanel,
+#   CREATIS, Universite Lyon 1, Insa de Lyon, Lyon, France.
+#
+#   This file is part of MicroVIP.
+#   MicroVIP is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 readonly CURRENT_LOCATION="$(dirname "$0")" || error_exit
 readonly CURRENT_NAME="$(basename "$0")" || error_exit
 # Default MATALB standalone path.
@@ -150,6 +167,11 @@ Allowed values are 'u' (Uniform) and 'g' (Gaussian)."
   return 0
 }
 
+echo "    MicroVIP  Copyright (C) 2021  Ali Ahmad, Guillaume Vanel,
+    CREATIS, Université Lyon 1, Insa de Lyon, Lyon, France.
+    This program comes with ABSOLUTELY NO WARRANTY; for details see
+    <https://www.gnu.org/licenses/gpl-3.0.txt>.
+"
 # -----------------------------------------
 # Process arguments.
 # -----------------------------------------
