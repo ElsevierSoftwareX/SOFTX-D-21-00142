@@ -1,7 +1,7 @@
-function microscopyImage = simulation3beamsim(markerCoordinateUm, ...
-            wavelengthUm, refractiveIndex, numericalAperture, ...
-            axialRangeUm,  lightSheetWidthUm, imageDimensionPx, ...
-            sampleSizeUm, psfDimensionPx, psfSampleSizeUm)
+function [microscopyImage, lateralResolutionUm] = simulation3beamsim(...
+    markerCoordinateUm, wavelengthUm, refractiveIndex, ...
+    numericalAperture, axialRangeUm,  lightSheetWidthUm, ...
+    imageDimensionPx, sampleSizeUm, psfDimensionPx, psfSampleSizeUm)
 %simulation3beamsim  Simulate 3 beam image acquisition.
 %   Simulate and return a 3D microscopy image obtained from given cell
 %   with a 3 beam Structured Illumination Microscopy (SIM) system. This can
@@ -37,6 +37,9 @@ function microscopyImage = simulation3beamsim(markerCoordinateUm, ...
 %   -------
 %       microscopyImage - nxnxz double. Simulated 2D microscopy image, of
 %   size imageDimensionPx.
+%       lateralResolutionUm - Double. Microscope lateral resolution (µm):
+%   minimal distance between two biomarkers so that they are
+%   distinguishable with the microscope.
 %
 %   Example
 %   -------
@@ -48,8 +51,6 @@ function microscopyImage = simulation3beamsim(markerCoordinateUm, ...
 %   psf2beamsim.
 
 %% Optical parameters
-% Microscope lateral resolution (µm): minimal distance between two
-% biomarkers so that they are distinguishable with the microscope.
 lateralResolutionUm = 0.5 * wavelengthUm / numericalAperture;
 % Microscope axial resolution. This value will be ignored by psfcore if
 % light sheet microscopy is used (lightSheetWidthUm > 0). In this case,

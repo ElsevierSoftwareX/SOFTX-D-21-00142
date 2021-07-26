@@ -7,6 +7,8 @@ readonly CURRENT_LOCATION="$(dirname "$0")" || error_exit
 readonly CURRENT_NAME="$(basename "$0")" || error_exit
 # Default MATALB standalone path.
 readonly DEFAULT_STANDALONE="${CURRENT_LOCATION}/featuresextractorstandalone"
+# Default Unloc wrapper script path.
+readonly DEFAULT_UNLOC_SCRIPT="${CURRENT_LOCATION}/unlocdetect.sh"
 # Section to read in .ini configuration file.
 readonly INI_SECTION="FeaturesExtractor"
 
@@ -31,6 +33,7 @@ function error_exit(){
 # Globals:
 #   CURRENT_NAME
 #   DEFAULT_STANDALONE
+#   DEFAULT_UNLOC_SCRIPT
 #   INI_SECTION
 # Arguments:
 #   None
@@ -53,9 +56,14 @@ features vectors.
                 (SIM). If -F is not used, default path is: 
                 ${DEFAULT_STANDALONE}.
   -R=MCRFOLDER  Define MATLAB runtime root folder (without trailing slash) to
-                extend and export environment variable LD_LIBRARY_PATH. If -R is
-                not used, you should ensure LD_LIBRARY_PATH is correctly set or
-                MATLAB runtime will complain about missing libraries.
+                extend and export environment variable LD_LIBRARY_PATH. 
+                Default value is environment variable MCR95.
+  -r=MCR_UNLOC  Define MATLAB runtime v9.2 root folder (without trailing slash)
+                to use as -R option for UNLOC wrapper script. Not needed if
+                pointillist extraction is not performed. Default value is
+                environment variable MCR92.
+  -U=UNLOC      Specify path to UNLOC wrapper script. If -U is not used, default
+                path is ${DEFAULT_UNLOC_SCRIPT}.
                 
 OUTPUT .json file will contain a json object formatted as follows:
   {
@@ -103,22 +111,25 @@ Please double check variable, section and file names."
 echo "Processing arguments."
 # Default values.
 matlab_standalone="${DEFAULT_STANDALONE}"
-while getopts "hR:F:" option; do
+unloc_script="${DEFAULT_UNLOC_SCRIPT}"
+mcr_95="${MCR95}" # MATLAB runtime roots
+mcr_92="${MCR92}"
+while getopts "hR:r:F:U:" option; do
   case $option in
     h)
       usage
       ;;
     R)
-      MCRROOT="${OPTARG}"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-.}:${MCRROOT}/runtime/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64"
-      export LD_LIBRARY_PATH;
-      echo "LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}";
+      mcr_95="${OPTARG}"
+      ;;
+    r)
+      mcr_92="${OPTARG}"
       ;;
     F)
       matlab_standalone="${OPTARG}"
+      ;;
+    U)
+      unloc_script="${OPTARG}"
       ;;
     *)
       error_exit "${LINENO}: Unknown option '${option}'.
@@ -126,6 +137,12 @@ Try ${CURRENT_NAME} -h for help."
       ;;
   esac
 done
+# Set LD_LIBRARY_PATH for MATLAB standalones
+LD_LIBRARY_PATH="${mcr_95}/runtime/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/bin/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/os/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/opengl/lib/glnxa64"
+export LD_LIBRARY_PATH;
 # Process positional arguments.
 shift $((OPTIND - 1))
 if [[ $# -ne 3 ]]
@@ -153,6 +170,29 @@ for ini_argument in neighborhood_size_GLCM_2D n_neighbor_LBP_2D \
   application_command+=("${ini_value}")
 done
 application_command+=("${output_json}")
+# Check if pointillist features should be extracted
+extract_pointillist="$(read_ini_variable extract_pointillist)" || \
+  error_exit "${LINENO}"
+if [[ "${extract_pointillist}" -eq 1 ]]; then
+  echo "Pointillist features will be extracted."
+  unloc_output="/tmp/unlocDetect"
+  echo "Performing UNLOC detection."
+  if [[ ! -f "${unloc_script}" ]]; then
+    error_exit "${LINENO}: $1 does not exist.
+Use -U option to indicate correct path for UNLOC detect wrapper script.
+See ${CURRENT_NAME} -h for help."
+  fi
+  "${unloc_script}" -R "${mcr_92}" "${input_tif}" "${unloc_output}" || \
+    error_exit "${LINENO}: UNLOC returned with non-zero status."
+  detection_csv="${unloc_output}/$(basename "${input_tif}" .tif).csv" || \
+    error_exit "${LINENO}"
+  application_command+=("${detection_csv}")
+  for ini_argument in radius_step_ripley_um max_radius_ripley_um \
+    min_cluster_size_Voronoi max_cluster_size_Voronoi; do
+    ini_value="$(read_ini_variable ${ini_argument})" || error_exit "${LINENO}"
+    application_command+=("${ini_value}")
+  done
+fi
 # -----------------------------------------
 # Run application.
 # -----------------------------------------

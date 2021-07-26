@@ -55,7 +55,11 @@ Outputs of all modules are saved in OUTPUT .tar archive file.
   -m=MODULES    Specify path to directory containing MicroVIP modules wrapper
                 scripts: cellgenerator.sh, microscopysimulator.sh and
                 featuresextractor.sh. If -m is not used, default path is
-                ${CURRENT_LOCATION}.
+                ${CURRENT_LOCATION}. If pointillist features should be extracted
+                this directory should also contain unlocdetect.sh script as well
+                as a sub-directory UNLOC with necessary executable and parameter
+                files (see install.sh -U option).
+                UNLOC_detect standalone 
   -n=NCELL      Number of cells being generated in different instances of
                 ${CURRENT_NAME} (see note on multiple cells generation below).
   -p            Call Cell generator module with -p option: prune (remove)
@@ -69,9 +73,12 @@ Outputs of all modules are saved in OUTPUT .tar archive file.
                 dimensions. If -r is not used, default RADIUS value is 350.
   -R=MCRFOLDER  Define MATLAB runtime root folder to extend and export 
                 environment variable LD_LIBRARY_PATH. This is necessary for
-                modules MATALB standalone applications to run properly. If -R is
-                not used, you should ensure LD_LIBRARY_PATH is correctly set or
-                MATLAB runtime will complain about missing libraries.
+                modules MATALB standalone applications to run properly. 
+                Default value is environment variable MCR95.
+  -U=UNLOC_MCR  Define MATLAB runtime v9.2 root folder (without trailing slash)
+                to use as -R option for UNLOC wrapper script. Not needed if
+                pointillist extraction is not performed. Default value is
+                environment variable MCR92.
   -s=SEED       Set MATLAB random numer generator seed. SEED is an integer
                 between 0 and 2^32 - 1. Use only in conjunction with -i and -n
                 (see note on multiple cells generation below).
@@ -123,23 +130,22 @@ See ${CURRENT_NAME} -h for help."
 # -----------------------------------------
 echo "Processing arguments."
 # Default values.
+mcr_95="${MCR95}" # MATLAB runtime roots
+mcr_92="${MCR92}"
 modules_directory="${CURRENT_LOCATION}" # Path to modules wrapper scripts.
 declare -a cell_generator_option # Will contain options -p and -r if needed.
 declare -a mutiple_cell_option # Arguments for multiple cells generation.
 # Process options.
-while getopts "hR:m:r:pi:n:s:" option; do
+while getopts "hR:U:m:r:pi:n:s:" option; do
   case "${option}" in
     h)
       usage
       ;;
     R)
-      MCRROOT="${OPTARG}"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-.}:${MCRROOT}/runtime/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64"
-      export LD_LIBRARY_PATH;
-      echo "LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}";
+      mcr_95="${OPTARG}"
+      ;;
+    U)
+      mcr_92="${OPTARG}"
       ;;
     m)
       modules_directory="${OPTARG/%\//}"
@@ -159,6 +165,12 @@ Try ${CURRENT_NAME} -h for help."
       ;;
   esac
 done
+# Set LD_LIBRARY_PATH for MATLAB standalones
+LD_LIBRARY_PATH="${mcr_95}/runtime/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/bin/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/os/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/opengl/lib/glnxa64"
+export LD_LIBRARY_PATH;
 # Check that either all or none of -i, -n and -s have been provided.
 if [[ ! "${#mutiple_cell_option[*]}" =~ 0|6 ]]; then
   error_exit "${LINENO}: All or none of -n, -i and -s options must be used.
@@ -181,7 +193,7 @@ prefix="${output_tar/%.tar/}."
 biomarker_csv="${prefix}csv"
 declare -a all_modules_output=( "${biomarker_csv}" )
 echo "Modelling ground truth biomarkers positions."
-run_module "${modules_directory}/cellgenerator.sh" \
+run_module "${modules_directory}/cellgenerator.sh" -R "${mcr_95}" \
   "${cell_generator_option[@]}" "${mutiple_cell_option[@]}" \
   "${configuration_ini}" "${biomarker_csv}"
 # -----------------------------------------
@@ -192,7 +204,7 @@ if [[ ${pipeline} -gt 0 ]]; then
   image_tif="${prefix}img.tif"
   all_modules_output+=( "${ground_truth_tif}" "${image_tif}")
   echo "Simulating microscopy image acquisition."
-  run_module "${modules_directory}/microscopysimulator.sh" \
+  run_module "${modules_directory}/microscopysimulator.sh" -R "${mcr_95}" \
     "${mutiple_cell_option[@]}" "${biomarker_csv}" "${configuration_ini}" \
     "${ground_truth_tif}" "${image_tif}"
   # -----------------------------------------
@@ -203,8 +215,8 @@ if [[ ${pipeline} -gt 0 ]]; then
     features_json="${prefix}json"
     all_modules_output+=( "${features_json}")
     echo "Performing features extraction."
-    run_module "${modules_directory}/featuresextractor.sh" "${image_tif}" \
-      "${configuration_ini}" "${features_json}"
+    run_module "${modules_directory}/featuresextractor.sh" -R "${mcr_95}" \
+      -r "${mcr_92}" "${image_tif}" "${configuration_ini}" "${features_json}"
   fi
 fi
 # -----------------------------------------

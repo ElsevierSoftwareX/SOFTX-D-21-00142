@@ -65,9 +65,8 @@ output simulated 3D microscopy image is saved in IMAGE .tif image stack.
   -n=NCELL      Number of cells being imaged in different instances of
                 ${CURRENT_NAME} (see note on multiple cells imaging below).
   -R=MCRFOLDER  Define MATLAB runtime root folder (without trailing slash) to
-                extend and export environment variable LD_LIBRARY_PATH. If -R is
-                not used, you should ensure LD_LIBRARY_PATH is correctly set or
-                MATLAB runtime will complain about missing libraries.
+                extend and export environment variable LD_LIBRARY_PATH. 
+                Default value is environment variable MCR95.
   -s=SEED       Set MATLAB random numer generator seed. SEED is an integer
                 between 0 and 2^32 - 1. Use only in conjunction with -i and -n
                 (see note on multiple cells imaging below).
@@ -126,6 +125,7 @@ Please double check variable, section and file names."
 # -------------------------------------------------
 echo "Processing arguments."
 # Default values.
+mcr_95="${MCR95}" # MATLAB runtime root
 declare -a mutiple_cell_argument # Arguments for multiple cells generation.
 # Matlab standalones for Microscopy simulator (microscopy_standalone for
 # confocal, widefield and SIM, sofi_standalone for bSOFI and STORM).
@@ -138,13 +138,7 @@ while getopts "hR:M:S:i:n:s:" option; do
       usage
       ;;
     R)
-      MCRROOT="${OPTARG}"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-.}:${MCRROOT}/runtime/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64"
-      export LD_LIBRARY_PATH;
-      echo "LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}";
+      mcr_95="${OPTARG}"
       ;;
     M)
       microscopy_standalone="${OPTARG}"
@@ -167,6 +161,12 @@ Try ${CURRENT_NAME} -h for help."
       ;;
   esac
 done
+# Set LD_LIBRARY_PATH for MATLAB standalones
+LD_LIBRARY_PATH="${mcr_95}/runtime/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/bin/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/os/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/opengl/lib/glnxa64"
+export LD_LIBRARY_PATH;
 # Check that either all or none of -i, -n and -s have been provided.
 if [[ ! "${#mutiple_cell_argument[*]}" =~ 0|3 ]]; then
   error_exit "${LINENO}: All or none of -n, -i and -s options must be used.
@@ -199,7 +199,8 @@ case $microscope_index in
                         axial_range_um axial_step_um bleaching_time_s \
                         marker_intensity_photon gaussian_noise_mean \
                         gaussian_noise_std cell_speed_um_per_s \
-                        shutter_speed_hz frame_rate_hz light_sheet_width_um; do
+                        shutter_speed_hz frame_rate_hz light_sheet_width_um \
+                        wiener_parameter; do
       ini_value="$(read_ini_variable ${ini_argument})" || \
         error_exit "${LINENO}"
       application_command+=("${ini_value}")
