@@ -6,7 +6,9 @@ Applications/UNLOC
 # Code output files
 *.csv
 *.tif
-*.json
 *.tar
+*.json
+# Except boutiques descriptor
+!Deployment/microVip_boutiques_descriptor.json
 # Backup files
 *~

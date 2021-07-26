@@ -1,144 +1,15 @@
-&lt;h1&gt;Description&lt;/h1&gt;
-MicroVIP is part of European project PROCHIP, you can find more information about it and this project at &lt;a href=&quot;https://www.creatis.insa-lyon.fr/site7/en/PROCHIP&quot;&gt;https://www.creatis.insa-lyon.fr/site7/en/PROCHIP&lt;/a&gt;. It consists in a microscopy image simulation tool for following microscopy techniques: wide-field, confocal, Structured Illumination Microscopy (SIM), Light Sheet Microscopy (LSM), balanced Super-resolution Optical Fluctuation Imaging (bSOFI) and Stochastic Optical Reconstruction Microscopy (STORM). This tool is divided in three modules, respectively modeling of ground truth cells (3D coordinates of biomarkers), simulation of image acquisition process, and features extraction.
-&lt;h2&gt;Parameters and outputs&lt;/h2&gt;
-&lt;h3&gt;Number of cells&lt;/h3&gt;
+<h1>Description</h1>
+MicroVIP is part of European project PROCHIP, you can find more information about it and this project at <a href="https://www.creatis.insa-lyon.fr/site7/en/MicroVIP">https://www.creatis.insa-lyon.fr/site7/en/MicroVIP</a>. It consists in a microscopy image simulation tool for following microscopy techniques: wide-field, confocal, Structured Illumination Microscopy (SIM), Light Sheet Microscopy (LSM), balanced Super-resolution Optical Fluctuation Imaging (bSOFI) and Stochastic Optical Reconstruction Microscopy (STORM). This tool is divided in three modules, respectively modeling of ground truth cells (3D coordinates of biomarkers), simulation of image acquisition process, and features extraction.
+<h2>Parameters and outputs</h2>
+<h3>Number of cells</h3>
 MicroVIP allows generation and imaging of any given number of cells in parallel. They are generated with the same parameters but using random distributions to create variability, and each one is statistically independant from the others.
-&lt;h3&gt;Pipeline&lt;/h3&gt;
-This parameter allows execution of aforementioned modules in a single pipeline. If all three modules should be executed, set pipeline=2. This corresponds to cells generation, followed by simulation of these cell&apos;s microscopy images, followed by features extraction on these images. All intermediate files (output of each module) will be available in the result directory. &lt;/br&gt;Setting pipeline=1 stops the pipeline after module 2: micrscopy images are simulated but features extraction is not performed, saving computation time. &lt;/br&gt;To perform only cell generation, set pipeline=1.
-&lt;h3&gt;Configuration file&lt;/h3&gt;
+<h3>Pipeline</h3>
+This parameter allows execution of aforementioned modules in a single pipeline. If all three modules should be executed, set pipeline=2. This corresponds to cells generation, followed by simulation of these cell&apos;s microscopy images, followed by features extraction on these images. All intermediate files (output of each module) will be available in the result directory. </br>Setting pipeline=1 stops the pipeline after module 2: micrscopy images are simulated but features extraction is not performed, saving computation time. </br>To perform only cell generation, set pipeline=1.
+<h3>Configuration file</h3>
 This should be the path to a .ini file containing all parameters for the simulation. Examples are available in File Transfer under /vip/Prochip (group)/data/. To customize an execution, download one of these examples and modify parameter values as needed. Then, upload the new .ini file to desired location in File Transfer, and enter its path in the interface (you can browse File Transfer to find the file thanks to the magnifying glass button).
-&lt;h3&gt;Outputs&lt;/h3&gt;
-At the end of the execution, entered results directory will contain an archive microVipOut.tar, organized in sub-directories containing results of each module. &apos;markers_coordinates&apos; contains three columns .csv files of 3D biomarkers coordinates, output of module 1. &apos;ground_truth_images&apos; and &apos;final_images&apos; respectively contain binarized ground truth 3D images of biomarkers, and simulated microscopy images, all in .tif format. These are outputs of module 2, available only if pipeline&gt;0. &apos;extracted_features&apos; contains .json files of extracted features for each image, output of module 3 and available only if pipeline=2.&lt;/br&gt;
+<h3>Outputs</h3>
+At the end of the execution, entered results directory will contain an archive microVipOut.tar, organized in sub-directories containing results of each module. &apos;markers_coordinates&apos; contains three columns .csv files of 3D biomarkers coordinates, output of module 1. &apos;ground_truth_images&apos; and &apos;final_images&apos; respectively contain binarized ground truth 3D images of biomarkers, and simulated microscopy images, all in .tif format. These are outputs of module 2, available only if pipeline>0. &apos;extracted_features&apos; contains .json files of extracted features for each image, output of module 3 and available only if pipeline=2.</br>
 In addition, results directory contains one .tar archive for each cell, which name starts with &apos;XofY_&apos; where X is concerned cell and Y is the total number of cells generated. This archive contain the same aforementionned files, but only for one generated cell.
-&lt;h1&gt;Terms of use&lt;/h1&gt;
-MicroVIP is an open-source application, you can find license information and source code at: &lt;i&gt;Link coming soon&lt;/i&gt;.&lt;/br&gt;
-It is partially based on following works, used, modified and/or deployed by Guillaume Vanel as permitted by the terms of hereafter license notices. Further description of the modifications and uses made of each work can be found in aforementionned source code repository.
-&lt;h2&gt;InfMod3DGen&lt;/h2&gt;
-Siyu Wang, Jinbo Xu and Jianyang Zeng. Inferential modeling of 3D chromatin structure. Nucleic acids research, 2015: gkv100. &lt;/br&gt;
-Available at &lt;a href=&quot;https://github.com/wangsy11/InfMod3DGen&quot;&gt;https://github.com/wangsy11/InfMod3DGen&lt;/a&gt;. Retrieved March 18, 2020.&lt;/br&gt;&lt;/br&gt;
-Written permission from the author for use for non-commercial research purposes.
-&lt;h2&gt;Curvspace&lt;/h2&gt;
-Yo Fukushima (2021). curvspace (&lt;a href=&quot;https://www.mathworks.com/matlabcentral/fileexchange/7233-curvspace&quot;&gt;https://www.mathworks.com/matlabcentral/fileexchange/7233-curvspace&lt;/a&gt;), MATLAB Central File Exchange. Retrieved March 8, 2021.
-&lt;/br&gt;&lt;/br&gt;
-Copyright &#169; 2016, Yo Fukushima&lt;/br&gt;
-All rights reserved.
-&lt;/br&gt;
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-&lt;/br&gt;
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-&lt;/br&gt;
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution&lt;/br&gt;
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-&lt;h2&gt;3D Rotation about Shifted Axis&lt;/h2&gt;
-Matt J (2021). 3D Rotation about Shifted Axis (&lt;a href=&quot;https://www.mathworks.com/matlabcentral/fileexchange/30864-3d-rotation-about-shifted-axis&quot;&gt;https://www.mathworks.com/matlabcentral/fileexchange/30864-3d-rotation-about-shifted-axis&lt;/a&gt;), MATLAB Central File Exchange. Retrieved March 8, 2021.
-&lt;/br&gt;&lt;/br&gt;
-Copyright &#169; 2011, Matt Jacobson&lt;/br&gt;
-All rights reserved.
-&lt;/br&gt;
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-&lt;/br&gt;
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-&lt;/br&gt;
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution&lt;/br&gt;
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-&lt;h2&gt;SOFI Simulation Tool&lt;/h2&gt;
-Girsault A, Lukes T, Sharipov A, Geissbuehler S, Leutenegger M, Vandenberg W, et al. (2016) SOFI Simulation Tool: A Software Package for Simulating and Testing Super-Resolution Optical Fluctuation Imaging. PLoS ONE 11(9): e0161602. &lt;a href=&quot;https://doi.org/10.1371/journal.pone.0161602&quot;&gt;https://doi.org/10.1371/journal.pone.0161602&lt;/a&gt;&lt;/br&gt;
-Available at &lt;a href=&quot;https://www.epfl.ch/labs/lben/lob/page-155720-en-html/sofitool/&quot;&gt;https://www.epfl.ch/labs/lben/lob/page-155720-en-html/sofitool/&lt;/a&gt;. Retrieved March 18, 2020. &lt;/br&gt;&lt;/br&gt;
-Copyright &#169; 2015 Arik Girsault
-&lt;/br&gt;
-&#201;cole Polytechnique F&#233;d&#233;rale de Lausanne,&lt;/br&gt;Laboratoire d&apos;Optique Biom&#233;dicale, BM 5.142, Station 17, 1015 Lausanne, Switzerland.&lt;/br&gt;arik.girsault&#64;epfl.ch, tomas.lukes&#64;epfl.ch
-&lt;/br&gt;
-&lt;a href=&quot;http://lob.epfl.ch/&quot;&gt;http://lob.epfl.ch/&lt;/a&gt;
-&lt;/br&gt;
-SOFIsim is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-&lt;/br&gt;
-SOFIsim is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-&lt;/br&gt;
-You can find a copy of the GNU General Public License at &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;http://www.gnu.org/licenses/&lt;/a&gt;.
-&lt;h2&gt;ScatNet&lt;/h2&gt;
-And&#233;n J, Sifre L, Mallat S, Kapoko M, Lostanlen V, Oyallon E, available at &lt;a href=&quot;https://www.di.ens.fr/data/software/scatnet/&quot;&gt;https://www.di.ens.fr/data/software/scatnet/&lt;/a&gt;. Retrieved March 1, 2021.
-&lt;/br&gt;&lt;/br&gt;
-Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not use this file except in compliance with the License.
-&lt;/br&gt;
-You may obtain a copy of the License at &lt;a href=&quot;http://www.apache.org/licenses/LICENSE-2.0&quot;&gt;http://www.apache.org/licenses/LICENSE-2.0&lt;/a&gt;
-&lt;/br&gt;
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-&lt;/br&gt;
-See the License for the specific language governing permissions and limitations under the License.
-&lt;h2&gt;Vectorized GLCM Texture features calculations&lt;/h2&gt;
-Patrik Brynolfsson (2021). GLCMFeatures(glcm) (&lt;a href=&quot;https://www.mathworks.com/matlabcentral/fileexchange/55034-glcmfeatures-glcm&quot;&gt;https://www.mathworks.com/matlabcentral/fileexchange/55034-glcmfeatures-glcm&lt;/a&gt;), MATLAB Central File Exchange. Retrieved March 22, 2021.
-&lt;/br&gt;&lt;/br&gt;
-Copyright &#169; 2016, Patrik Brynolfsson&lt;/br&gt;
-Copyright &#169; 2008, Avinash Uppuluri&lt;/br&gt;
-All rights reserved.
-&lt;/br&gt;
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-&lt;/br&gt;
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-&lt;/br&gt;
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution&lt;/br&gt;
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-&lt;h2&gt;2D Autocorrelation function&lt;/h2&gt;
-Youssef Khmou (2021). 2D Autocorrelation function (&lt;a href=&quot;https://www.mathworks.com/matlabcentral/fileexchange/37624-2d-autocorrelation-function&quot;&gt;https://www.mathworks.com/matlabcentral/fileexchange/37624-2d-autocorrelation-function&lt;/a&gt;), MATLAB Central File Exchange. Retrieved March 24, 2021.
-&lt;/br&gt;&lt;/br&gt;
-Copyright &#169; 2012, Youssef KHMOU&lt;/br&gt;
-All rights reserved.
-&lt;/br&gt;
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-&lt;/br&gt;
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-&lt;/br&gt;
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution&lt;/br&gt;
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.z
+<h1>Terms of use</h1>
+MicroVIP is an open-source application, you can find its source code and license information at: <a href="https://gitlab.in2p3.fr/guillaume.vanel/microvip">https://gitlab.in2p3.fr/guillaume.vanel/microvip</a>.</br>
+It is partially based third-party works. You can find complete reference, citations and license notices at :<a href="https://gitlab.in2p3.fr/guillaume.vanel/microvip/-/wikis/home">https://gitlab.in2p3.fr/guillaume.vanel/microvip/-/wikis/home</a>.

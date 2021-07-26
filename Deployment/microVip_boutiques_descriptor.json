@@ -1,0 +1,73 @@
+{
+    "name": "MicroVip",
+    "description": "&lt;h1&gt;Description&lt;/h1&gt; MicroVIP is part of European project PROCHIP, you can find more information about it and this project at &lt;a href=&quot;https://www.creatis.insa-lyon.fr/site7/en/MicroVIP&quot;&gt;https://www.creatis.insa-lyon.fr/site7/en/MicroVIP&lt;/a&gt;. It consists in a microscopy image simulation tool for following microscopy techniques: wide-field, confocal, Structured Illumination Microscopy (SIM), Light Sheet Microscopy (LSM), balanced Super-resolution Optical Fluctuation Imaging (bSOFI) and Stochastic Optical Reconstruction Microscopy (STORM). This tool is divided in three modules, respectively modeling of ground truth cells (3D coordinates of biomarkers), simulation of image acquisition process, and features extraction. &lt;h2&gt;Parameters and outputs&lt;/h2&gt; &lt;h3&gt;Number of cells&lt;/h3&gt; MicroVIP allows generation and imaging of any given number of cells in parallel. They are generated with the same parameters but using random distributions to create variability, and each one is statistically independant from the others. &lt;h3&gt;Pipeline&lt;/h3&gt; This parameter allows execution of aforementioned modules in a single pipeline. If all three modules should be executed, set pipeline=2. This corresponds to cells generation, followed by simulation of these cell&apos;s microscopy images, followed by features extraction on these images. All intermediate files (output of each module) will be available in the result directory. &lt;/br&gt;Setting pipeline=1 stops the pipeline after module 2: micrscopy images are simulated but features extraction is not performed, saving computation time. &lt;/br&gt;To perform only cell generation, set pipeline=1. &lt;h3&gt;Configuration file&lt;/h3&gt; This should be the path to a .ini file containing all parameters for the simulation. Examples are available in File Transfer under /vip/Prochip (group)/data/. To customize an execution, download one of these examples and modify parameter values as needed. Then, upload the new .ini file to desired location in File Transfer, and enter its path in the interface (you can browse File Transfer to find the file thanks to the magnifying glass button). &lt;h3&gt;Outputs&lt;/h3&gt; At the end of the execution, entered results directory will contain an archive microVipOut.tar, organized in sub-directories containing results of each module. &apos;markers_coordinates&apos; contains three columns .csv files of 3D biomarkers coordinates, output of module 1. &apos;ground_truth_images&apos; and &apos;final_images&apos; respectively contain binarized ground truth 3D images of biomarkers, and simulated microscopy images, all in .tif format. These are outputs of module 2, available only if pipeline&gt;0. &apos;extracted_features&apos; contains .json files of extracted features for each image, output of module 3 and available only if pipeline=2.&lt;/br&gt; In addition, results directory contains one .tar archive for each cell, which name starts with &apos;XofY_&apos; where X is concerned cell and Y is the total number of cells generated. This archive contain the same aforementionned files, but only for one generated cell. &lt;h1&gt;Terms of use&lt;/h1&gt; MicroVIP is an open-source application, you can find its source code and license information at: &lt;a href=&quot;https://gitlab.in2p3.fr/guillaume.vanel/microvip&quot;&gt;https://gitlab.in2p3.fr/guillaume.vanel/microvip&lt;/a&gt;.&lt;/br&gt; It is partially based third-party works. You can find complete reference, citations and license notices at :&lt;a href=&quot;https://gitlab.in2p3.fr/guillaume.vanel/microvip/-/wikis/home&quot;&gt;https://gitlab.in2p3.fr/guillaume.vanel/microvip/-/wikis/home&lt;/a&gt;.",
+    "tool-version": "v1.0.0",
+    "schema-version": "0.5",
+    "author": "Guillaume Vanel and Ali Ahmad", 
+    "command-line": "/opt/MicroVIP/microvip.sh -p -r 350 [N_STREAMS] [INDEX] [SEED] [PIPELINE] [PARAM_INI] [OUTPUT_TAR]",
+    "container-image": {
+        "image": "guilom/vip_simulators:1.0.0",
+        "type": "singularity",
+        "index":"docker://"
+    },
+    "inputs": [
+        {
+            "id": "n_streams",
+            "name": "Number of cells",
+            "description": "Number of cells to generate.",
+            "optional": false,
+            "type": "Number",
+            "value-key": "[N_STREAMS]",
+            "default-value": 1,
+            "command-line-flag": "-n"
+        },
+        {
+            "id": "index",
+            "name": "Stream index",
+            "description": "Index of current job (for independant random number generation in each job).",
+            "optional": false,
+            "type": "Number",
+            "value-key": "[INDEX]",
+            "default-value": 1,
+            "command-line-flag": "-i"
+        },
+        {
+            "id": "seed",
+            "name": "Random seed",
+            "description": "Random number generation seed. Should be the same as the one of other parallel jobs.",
+            "optional": false,
+            "type": "Number",
+            "value-key": "[SEED]",
+            "default-value": 0,
+            "command-line-flag": "-s"
+        },
+        {
+            "id": "pipeline",
+            "name": "Pipeline",
+            "description": "Pipeline to perform. 0 corresponds to cell generationonly, 1 to cell generation followed by a simulation of microscopy experiment on these cells, and 2 additionally performs features extraction on obtained microscopy images.",
+            "optional": false,
+            "type": "Number",
+            "value-key": "[PIPELINE]",
+            "default-value": 0
+        },
+        {
+            "id": "param_ini",
+            "name": "Configuration file",
+            "description": ".ini parameter file containing at least a section [CellGenerator] with variables describing generated cells (markers distribution...). If pipeline is 1 or 2, it should also contain a section [MicroscopySimulator] with variable describing the microscopy experiment (microscope, objective, camera...). If pipeline is 2, an additional section [FeaturesCalculator] should be present, containing features extraction methods hyper-parameters.",
+            "optional": false,
+            "type": "File",
+            "value-key": "[PARAM_INI]",
+            "default-value": "/vip/Prochip (group)/data/example_parameters.ini"
+        }
+    ],
+    "output-files": [
+        {
+            "id": "output_tar",
+            "name": "Generated archive",
+            "description": "Output .tar archive containing fluorophore coordinates .csv file, ground truth .tif image, simulated microscopy .tif image and extracted features .json file.",
+            "optional": false,
+            "path-template": "[INDEX]of[N_STREAMS]_[PARAM_INI].tar",
+            "value-key": "[OUTPUT_TAR]"
+        }
+    ]
+}
