@@ -4,16 +4,19 @@ function featuresextractorstandalone(image3DTif, ...
     neighboorhoodSizeGlcm3D, nXyNeighborLbptop, nXzNeighborLbptop, ...
     nYzNeighborLbptop, xRadiusLbptop, yRadiusLbptop, zRadiusLbptop, ...
     nLayerScattering3D, nScaleScattering3D, nOrientationScattering3D, ...
-    extractedFeatureJson)
-%featuresextractorestandalone  Extract 2 and 3D textural image features.
-%   Apply several textural features extraction methods to given .tif 3D
-%   image stack file.
-%   Extracted 2D features are Haralick features, Local Binary Patterns
-%   (LBP), scattering transform and autocorrelation features. All 2D 
-%   features are extracted from 3D image's z sum projection.
-%   Extracted 3D features are Haralick features, LBP on Three Orthogonal
-%   Planes (LBP-TOP) and scattering transform in x, y and z sum
+    extractedFeatureJson, unlocDetectionCsv, radiusStepRipleyUm, ...
+    maxRadiusRipleyUm, minClusterSizeVoronoi, maxClusterSizeVoronoi)
+%featuresextractorestandalone  Extract image features.
+%   Apply several textural, and optionnally pointillist, features
+%   extraction methods to given .tif 3D image stack file.
+%   Extracted 2D textural features are Haralick features, Local Binary
+%   Patterns (LBP), scattering transform and autocorrelation features. All
+%   2D features are extracted from 3D image's z sum projection.
+%   Extracted 3D textural features are Haralick features, LBP on Three
+%   Orthogonal Planes (LBP-TOP) and scattering transform in x, y and z sum
 %   projections.
+%   Optionnally, extracted pointillist features are Ripley k-function
+%   features and Voronoi segmentation features.
 %   Nothing is returned but extractedFeatureJson is created or overwritten.
 %   It is a .json file that will contain a json object with two keys "2D"
 %   and "3D". Each key corresponds to a json object with keys "Haralick",
@@ -21,6 +24,10 @@ function featuresextractorstandalone(image3DTif, ...
 %   Haralick features, LBP and Scattering transform features.
 %   Additionnally, 2D features object contains a key "Autocorrelation" for
 %   autocorrelation features.
+%   If pointillist freatures are extracted, a key "Pointillist" will exist,
+%   Corresponding to an object with keys "Ripley" and "Voronoi", for
+%   Ripley k-function features and Voronoi segmentation features
+%   respectively
 %
 % 	Inputs
 %   ------
@@ -73,15 +80,36 @@ function featuresextractorstandalone(image3DTif, ...
 %       extractedFeatureJson - String. Path to output .json file that will
 %   contain extracted features.
 %
+%   Optional Inputs
+%   ---------------
+%   Following inputs are optional, but all or none should be provided. They
+%   are used for pointillist features extraction (Ripley and Vornoi), and
+%   are extracted from the output .csv file from UNLOC detection algorithm.
+%       unlocDetectionCsv - String. Path to UNLOC detection output .csv
+%   file.
+%       radiusStepKRipleyUm - Double. Radius step size (µm) for Ripley
+%   K-function discretized estimation.
+%       maxRadiusKRipleyUm - Double. Maximum radius (µm) for Ripley
+%   K-function estimation.
+%       minClusterSizeVoronoi, maxClusterSizeVoronoi - Doubles. Minimum
+%   and maximum number of markers in a cluster for Voronoi features
+%   extraction.
+
+%
 %   Notes
 %   -----
 %       All parameters support strings containing their value, in addition
 %   to their aforementionned type.
+%       All or none of optional inputs should be provided, depending on
+%   if pointillist features extraction should, or not, be performed.
 %
 %   Example
 %   -------
 %       featuresextractorestandalone('Path/to/image3D.tif', 8, 8, 1, ...
 %   2, 4, 8, 8, 8, 8, 8, 1, 1, 3, 2, 4, 8, 'Path/to/features.json')
+%       featuresextractorestandalone('Path/to/image3D.tif', 8, 8, 1, ...
+%   2, 4, 8, 8, 8, 8, 8, 1, 1, 3, 2, 4, 8, 'Path/to/features.json', ...
+%   'Path/to/UnlocOut.csv', 0.02, 13, 5, 50)
 %
 %   See also featuresextractor.
 
@@ -100,7 +128,42 @@ function featuresextractorstandalone(image3DTif, ...
                            nXzNeighborLbptop, nYzNeighborLbptop, ...
                            xRadiusLbptop, yRadiusLbptop, zRadiusLbptop, ...
                            nLayerScattering3D, nScaleScattering3D, ...
-                           nOrientationScattering3D}, {}, {});
+                           nOrientationScattering3D}, ...
+                      {}, {});
+% Check if optional arguments are provided
+nPointillistArguments = exist('unlocDetectionCsv', 'var') + ...
+                        exist('radiusStepRipleyUm', 'var') + ...
+                        exist('maxRadiusRipleyUm', 'var') + ...
+                        exist('minClusterSizeVoronoi', 'var') + ...
+                        exist('maxClusterSizeVoronoi', 'var');
+switch nPointillistArguments
+    case 0
+        performsPointillist = false;
+    case 5
+        performsPointillist = true;
+        [radiusStepRipleyUm, maxRadiusRipleyUm, ...
+         minClusterSizeVoronoi, maxClusterSizeVoronoi] = ...
+            valuesfromstrings({radiusStepRipleyUm, maxRadiusRipleyUm}, ...
+                              {minClusterSizeVoronoi, ...
+                               maxClusterSizeVoronoi}, {}, {});
+        % Read UNLOC detection output file
+        % Seven columns table, with lat one being ignored artifical column due to
+        % rows ending wth a delimiter. Columns are: time, x coordinate, y
+        % coordinate, standard error on coordinates, alpha and standard deviation
+        % of background noise.
+        unlocTable = readtable(unlocDetectionCsv,'HeaderLines',71);
+        % Keep only marker coordinates
+        detectedCoordinatesPx = table2array(unlocTable(:,2:3));
+        % Read pixel size used for UNLOC detection
+        regexpMatch = regexp(fileread(unlocDetectionCsv), ...
+            '(?<=pixel2micron = )([0-9.]+)', 'match');
+        pixelSizeUm = str2double(regexpMatch{1});
+    otherwise
+        error("All or none of optional inputs should be provided, " + ...
+              "depending on if pointillist features extraction " + ...
+              "should, or not, be performed. But only " + ...
+              nPointillistArguments + " of them were.");
+end
 % Read image file
 % Number of images ("Z slices") in image stack
 imageInformation = imfinfo(image3DTif);
@@ -123,10 +186,35 @@ feature3D = extract3dfeatures(imageStack, neighboorhoodSizeGlcm3D, ...
                               yRadiusLbptop, zRadiusLbptop, ...
                               nLayerScattering3D, nScaleScattering3D, ...
                               nOrientationScattering3D);
+if performsPointillist
+    disp("Extracting pointillist features.")
+    try
+        pointillistFeatures = extractPointillistFeatures(...
+            detectedCoordinatesPx, pixelSizeUm, radiusStepRipleyUm, ...
+            maxRadiusRipleyUm, minClusterSizeVoronoi, ...
+            maxClusterSizeVoronoi);
+    catch exception
+        if (strcmp(exception.identifier,'MATLAB:array:SizeLimitExceeded'))
+            warning("Can't perform pointillist features extraction, " + ...
+                    "too many markers detected : " + ...
+                    size(detectedCoordinatesPx, 1))
+            performsPointillist = false;
+        else
+            rethrow(exception)
+        end
+    end
+end
 %% Write output file
 % Format output as json.
-jsonContent = sprintf('{\n\t"2D": %s,\n\t"3D": %s\n}', ...
-                      jsonencode(feature2D), jsonencode(feature3D));
+if performsPointillist
+    jsonContent = sprintf(['{\n', '\t"2D": %s,\n', '\t"3D": %s,\n', ...
+                           '\t"Pointillist": %s\n', '}'], ...
+                          jsonencode(feature2D), jsonencode(feature3D), ...
+                          jsonencode(pointillistFeatures));
+else
+    jsonContent = sprintf('{\n\t"2D": %s,\n\t"3D": %s\n}', ...
+                          jsonencode(feature2D), jsonencode(feature3D));
+end
 % For ease of reading, add some newlines and tabulation.
 jsonContent = replace(jsonContent, ['{"', "]}", ",", ":["], ...
                       [sprintf('{\n\t\t"'), sprintf(']\n\t}'), ", ", ...

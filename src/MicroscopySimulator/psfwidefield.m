@@ -1,7 +1,6 @@
-function psf = psfwidefield(wavelengthUm, refractiveIndex, ...
-                            numericalAperture, axialRangeUm, ...
-                            lightSheetWidthUm, imageDimensionPx, ...
-                            psfDimensionPx, psfSampleSizeUm)
+function [psf, lateralResolutionUm] = psfwidefield(...
+    wavelengthUm, refractiveIndex, numericalAperture, axialRangeUm, ...
+    lightSheetWidthUm, imageDimensionPx, psfDimensionPx, psfSampleSizeUm)
 %psfwidefield  Simulate widefield microscope Point Spread Function (PSF).
 %   Simulate and return theoritical PSF for a widefield microscope. This
 %   can be using Light Sheet Microscopy, or not.
@@ -31,6 +30,9 @@ function psf = psfwidefield(wavelengthUm, refractiveIndex, ...
 %   -------
 %       psf - nxnxz double. Simulated 2D microscopy image, of
 %   size imageDimensionPx.
+%       lateralResolutionUm - Double. Microscope lateral resolution (µm):
+%   minimal distance between two biomarkers so that they are
+%   distinguishable with the microscope.
 %
 %   Example
 %   -------
@@ -40,8 +42,6 @@ function psf = psfwidefield(wavelengthUm, refractiveIndex, ...
 %   See also psfcore, psfconfocal, psf2beamsim, simulation3beamsim.
 
 %% Optical parameters
-% Microscope lateral resolution (µm): minimal distance between two
-% biomarkers so that they are distinguishable with the microscope.
 lateralResolutionUm = 0.61 * wavelengthUm / numericalAperture;
 % Microscope axial resolution. This value will be ignored by psfcore if
 % light sheet microscopy is used (lightSheetWidthUm > 0). In this case,

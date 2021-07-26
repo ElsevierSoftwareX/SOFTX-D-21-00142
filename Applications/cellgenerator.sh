@@ -63,9 +63,8 @@ are read from ${INI_SECTION} of CONFIGURATION .ini file and output ground truth
                 into final cell's dimensions. If -r is not used, default RADIUS
                 value is 350.
   -R=MCRFOLDER  Define MATLAB runtime root folder (without trailing slash) to
-                extend and export environment variable LD_LIBRARY_PATH. If -R is
-                not used, you should ensure LD_LIBRARY_PATH is correctly set or
-                MATLAB runtime will complain about missing libraries.
+                extend and export environment variable LD_LIBRARY_PATH. 
+                Default value is environment variable MCR95.
   -s=SEED       Set MATLAB random numer generator seed. SEED is an integer
                 between 0 and 2^32 - 1. Use only in conjunction with -i and -n
                 (see note on multiple cells generation below).
@@ -156,6 +155,7 @@ Allowed values are 'u' (Uniform) and 'g' (Gaussian)."
 # -----------------------------------------
 echo "Processing arguments."
 # Default values.
+mcr_95="${MCR95}" # MATLAB runtime root
 is_prune='false' # Use of -p option.
 radius=350 # Default radius, overwritten if -r is used.
 matlab_standalone="${DEFAULT_STANDALONE}"
@@ -167,13 +167,7 @@ while getopts "hR:C:r:pi:n:s:" option; do
       usage
       ;;
     R)
-      MCRROOT="${OPTARG}"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-.}:${MCRROOT}/runtime/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64"
-      LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64"
-      export LD_LIBRARY_PATH;
-      echo "LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}";
+      mcr_95="${OPTARG}"
       ;;
     C)
       matlab_standalone="${OPTARG}"
@@ -199,6 +193,12 @@ Try ${CURRENT_NAME} -h for help."
       ;;
   esac
 done
+# Set LD_LIBRARY_PATH for MATLAB standalones
+LD_LIBRARY_PATH="${mcr_95}/runtime/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/bin/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/os/glnxa64"
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${mcr_95}/sys/opengl/lib/glnxa64"
+export LD_LIBRARY_PATH;
 # Check that either all or none of -i, -n and -s have been provided.
 if [[ ! "${#mutiple_cell_argument[*]}" =~ 0|3 ]]; then
   error_exit "${LINENO}: All or none of -n, -i and -s options must be used.

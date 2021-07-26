@@ -1,7 +1,6 @@
-function psf = psf2beamsim(wavelengthUm, refractiveIndex, ...
-                           numericalAperture, axialRangeUm, ...
-                           lightSheetWidthUm, imageDimensionPx, ...
-                           psfDimensionPx, psfSampleSizeUm)
+function [psf, lateralResolutionUm] = psf2beamsim(...
+    wavelengthUm, refractiveIndex, numericalAperture, axialRangeUm, ...
+    lightSheetWidthUm, imageDimensionPx, psfDimensionPx, psfSampleSizeUm)
 %psf2beamsim  Simulate 2 beam SIM Point Spread Function (PSF).
 %   Simulate and return theoritical PSF for a 2 beam Structured 
 %   Illumination Microscopy (SIM) system. This can be using Light Sheet
@@ -32,6 +31,9 @@ function psf = psf2beamsim(wavelengthUm, refractiveIndex, ...
 %   -------
 %       psf - nxnxz double. Simulated 2D microscopy image, of
 %   size imageDimensionPx.
+%       lateralResolutionUm - Double. Microscope lateral resolution (µm):
+%   minimal distance between two biomarkers so that they are
+%   distinguishable with the microscope.
 %
 %   Example
 %   -------
@@ -41,8 +43,6 @@ function psf = psf2beamsim(wavelengthUm, refractiveIndex, ...
 %   See also psfcore, psfwidefield, psfconfocal, simulation3beamsim.
 
 %% Optical parameters
-% Microscope lateral resolution (µm): minimal distance between two
-% biomarkers so that they are distinguishable with the microscope.
 lateralResolutionUm = 0.5 * wavelengthUm / numericalAperture;
 % Microscope axial resolution. This value will be ignored by psfcore if
 % light sheet microscopy is used (lightSheetWidthUm > 0). In this case,

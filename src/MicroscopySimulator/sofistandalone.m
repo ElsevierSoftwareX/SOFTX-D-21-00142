@@ -306,4 +306,5 @@ groundTruthBinaryImage = binaryimagefromcoordinates(...
     enlargedCoordinatePx,  size(superResolved3DImage));
 %% Save images as .tif image stacks.
 mat2tif(groundTruthTif, groundTruthBinaryImage)
-mat2tif(finalImageTif, superResolved3DImage)
+mat2tif(finalImageTif, superResolved3DImage, ...
+        opticalParameter.psf_digital * enlargementFactor)

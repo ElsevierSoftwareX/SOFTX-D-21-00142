@@ -6,12 +6,14 @@
 # Paths to sources
 readonly CURRENT_LOCATION="$(dirname "$0")" || error_exit
 readonly CURRENT_NAME="$(basename "$0")" || error_exit
+readonly APPLICATION_FOLDER="${CURRENT_LOCATION}/Applications"
 readonly SRC_FOLDER="${CURRENT_LOCATION}/src"
+readonly UTIL_FOLDER="${SRC_FOLDER}/util"
 readonly CELL_GENERATOR_FOLDER="${SRC_FOLDER}/CellGenerator"
 readonly CHROMATIN_FOLDER="${CELL_GENERATOR_FOLDER}/ChromatinChainDatabase"
 readonly FEATURES_EXTRACTOR_FOLDER="${SRC_FOLDER}/FeaturesExtractor"
 readonly IMAGE_SIMULATOR_FOLDER="${SRC_FOLDER}/MicroscopySimulator"
-readonly UTIL_FOLDER="${SRC_FOLDER}/util"
+
 # Temporary folder
 readonly TMP_FOLDER="/tmp/MicroVipInstall"
 # Compilation command
@@ -33,7 +35,54 @@ function error_exit(){
 ${CURRENT_NAME}: ${1:-"Unknown Error"}" 1>&2
   exit 1
 }
+################################################################################
+# Exit with status 0 after displaying help message.
+# Globals:
+#   CURRENT_NAME
+# Arguments:
+#   None
+# Outputs:
+#   Writes help message to stdout.
+# Returns:
+#   0
+################################################################################
+function usage(){
+  echo "Usage: ${CURRENT_NAME} [OPTION]
+Install MicroVIP by compiling all modules. If needed, start by generating
+chromatin chain configurations database.
 
+  -h            Display this help and exit.
+  -U=UNLOC      Path to UNLOC root folder. UNLOC is needed for pointillist
+                features extraction, which will not be available if this option
+                is not used. UNLOC can be downloaded at 
+                <http://ciml-e12.univ-mrs.fr/App.Net/mtt/>, please consult
+                README.md or MicroVIP's wiki for links to full citations and
+                aknowledgements.
+  
+For more information on MicroVIP, including full sources and documentation,
+visit <https://www.creatis.insa-lyon.fr/site7/en/PROCHIP>."
+  exit 0
+}
+
+# -----------------------------------------
+# Process arguments.
+# -----------------------------------------
+echo "Processing arguments."
+# Process options.
+while getopts "hU:" option; do
+  case "${option}" in
+    h)
+      usage
+      ;;
+    U)
+      unloc_root="${OPTARG%/}"
+      ;;
+    *)
+      error_exit "${LINENO}: Unknown option '${option}'.
+Try ${CURRENT_NAME} -h for help."
+      ;;
+  esac
+done
 # ------------------------------------------
 # Prepare empty tmp directory.
 # ------------------------------------------
@@ -73,6 +122,17 @@ MATLAB while generating chromatin database."
 Could not move chromatin database .mat files to ${CHROMATIN_FOLDER}."
   rm -rf "${TMP_FOLDER:?}/*"
 fi
+# -----------------------------------------
+# Get needed UNLOC files.
+# -----------------------------------------
+if [[ -d "${unloc_root}" ]]; then
+  echo "Copy required UNLOC files to ${APPLICATION_FOLDER}."
+  unloc_destination="${APPLICATION_FOLDER}/UNLOC"
+  mkdir "${unloc_destination}"
+  unloc_folder="${unloc_root}/Supplementary_Software/1-Plugin/UNLOC"
+  cp "${unloc_folder}/UNLOC_de"* "${unloc_destination}"
+  cp "${unloc_folder}/EXECUTABLE/UNLOC_detect" "${unloc_destination}"
+fi
 # ------------------------------------------
 # Compile standalone for each module.
 # ------------------------------------------
@@ -95,9 +155,9 @@ echo "  Compile Features extractor."
 ${MCC_COMMAND[*]} "${FEATURES_EXTRACTOR_FOLDER}/featuresextractorstandalone.m" \
   -a "${FEATURES_EXTRACTOR_FOLDER}" || error_exit "${LINENO}: Could not \
 compile ${FEATURES_EXTRACTOR_FOLDER}/featuresextractorstandalone.m"
-mv "${TMP_FOLDER}"/*standalone "${CURRENT_LOCATION}/Applications" || \
+mv "${TMP_FOLDER}"/*standalone "${APPLICATION_FOLDER}" || \
 error_exit "${LINENO}: Could not move standalones to \
-${CURRENT_LOCATION}/Applications."
+${APPLICATION_FOLDER}."
 rm -rf "${TMP_FOLDER}"
 echo "Installation completed succesfully."
 exit 0

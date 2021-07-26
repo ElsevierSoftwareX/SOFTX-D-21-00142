@@ -4,3 +4,9 @@
 [submodule "FeaturesExtractor/ThirdParty/scatnet"]
 	path = FeaturesExtractor/ThirdParty/scatnet
 	url = https://github.com/scatnet/scatnet.git
+[submodule "src/MicroscopySimulator/ThirdParty/HexSimProcessor"]
+	path = src/MicroscopySimulator/ThirdParty/HexSimProcessor
+	url = https://github.com/ImperialCollegeLondon/HexSimProcessor.git
+[submodule "src/FeaturesExtractor/ThirdParty/SharpViSu"]
+	path = src/FeaturesExtractor/ThirdParty/SharpViSu
+	url = git@github.com:draguar/SharpViSu.git

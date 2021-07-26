@@ -1,5 +1,6 @@
 # Compiled standalone applications
 Applications/*standalone
+Applications/UNLOC
 # Chromatin database .mat files
 *.mat
 # Code output files
