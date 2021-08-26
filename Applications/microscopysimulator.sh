@@ -24,7 +24,7 @@ readonly CURRENT_LOCATION="$(dirname "$0")" || error_exit
 readonly CURRENT_NAME="$(basename "$0")" || error_exit
 # Available microscopy techniques.
 readonly -a MICROSCOPE_TYPE=("widefield" "confocal" "2-beam SIM" "3-beam SIM" \
-                             "bSOFI" "STORM")
+                             "STORM" "bSOFI")
 # Default MATALB standalone paths.
 readonly DEFAULT_MICROSCOPY_STANDALONE="${CURRENT_LOCATION}/\
 microscopysimulatorstandalone"
