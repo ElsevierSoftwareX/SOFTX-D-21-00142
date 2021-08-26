@@ -24,4 +24,8 @@ function fig=statusbar(varargin)
 %
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-fig = figure(1);
+if(size(varargin) == 1)
+    fig = figure('visible','off');
+else
+    fig = varargin{end};
+end
