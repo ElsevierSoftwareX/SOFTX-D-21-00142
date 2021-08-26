@@ -305,8 +305,7 @@ clear sofiResult superResolvedSlice
 %% Normalization and contrast adjustment.
 if isSofi
     superResolved3DImage(superResolved3DImage < 0) = 0;
-    bsofiMinMax = [ min(superResolved3DImage(:)); ...
-                    max(superResolved3DImage(:)) ];
+    bsofiMinMax = [ 0; min(1, max(superResolved3DImage(:))) ];
     for axialSliceNo = 1:nAxialSlice
         superResolved3DImage(:, :, axialSliceNo) = imadjust(...
             superResolved3DImage(:, :, axialSliceNo), bsofiMinMax);
