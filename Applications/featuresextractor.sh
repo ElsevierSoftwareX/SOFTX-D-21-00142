@@ -209,8 +209,7 @@ See ${CURRENT_NAME} -h for help."
   detection_csv="${unloc_output}/$(basename "${input_tif}" .tif).csv" || \
     error_exit "${LINENO}"
   application_command+=("${detection_csv}")
-  for ini_argument in radius_step_ripley_um max_radius_ripley_um \
-    min_cluster_size_Voronoi max_cluster_size_Voronoi; do
+  for ini_argument in radius_step_ripley_um max_radius_ripley_um; do
     ini_value="$(read_ini_variable ${ini_argument})" || error_exit "${LINENO}"
     application_command+=("${ini_value}")
   done

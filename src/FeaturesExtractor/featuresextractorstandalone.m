@@ -5,7 +5,7 @@ function featuresextractorstandalone(image3DTif, ...
     nYzNeighborLbptop, xRadiusLbptop, yRadiusLbptop, zRadiusLbptop, ...
     nLayerScattering3D, nScaleScattering3D, nOrientationScattering3D, ...
     extractedFeatureJson, unlocDetectionCsv, radiusStepRipleyUm, ...
-    maxRadiusRipleyUm, minClusterSizeVoronoi, maxClusterSizeVoronoi)
+    maxRadiusRipleyUm)
 %featuresextractorestandalone  Extract image features.
 %   Apply several textural, and optionnally pointillist, features
 %   extraction methods to given .tif 3D image stack file.
@@ -16,7 +16,7 @@ function featuresextractorstandalone(image3DTif, ...
 %   Orthogonal Planes (LBP-TOP) and scattering transform in x, y and z sum
 %   projections.
 %   Optionnally, extracted pointillist features are Ripley k-function
-%   features and Voronoi segmentation features.
+%   features.
 %   Nothing is returned but extractedFeatureJson is created or overwritten.
 %   It is a .json file that will contain a json object with two keys "2D"
 %   and "3D". Each key corresponds to a json object with keys "Haralick",
@@ -25,9 +25,8 @@ function featuresextractorstandalone(image3DTif, ...
 %   Additionnally, 2D features object contains a key "Autocorrelation" for
 %   autocorrelation features.
 %   If pointillist freatures are extracted, a key "Pointillist" will exist,
-%   Corresponding to an object with keys "Ripley" and "Voronoi", for
-%   Ripley k-function features and Voronoi segmentation features
-%   respectively
+%   Corresponding to an object with key "Ripley" for
+%   Ripley k-function features.
 %
 % 	Inputs
 %   ------
@@ -91,10 +90,6 @@ function featuresextractorstandalone(image3DTif, ...
 %   K-function discretized estimation.
 %       maxRadiusKRipleyUm - Double. Maximum radius (µm) for Ripley
 %   K-function estimation.
-%       minClusterSizeVoronoi, maxClusterSizeVoronoi - Doubles. Minimum
-%   and maximum number of markers in a cluster for Voronoi features
-%   extraction.
-
 %
 %   Notes
 %   -----
@@ -109,7 +104,7 @@ function featuresextractorstandalone(image3DTif, ...
 %   2, 4, 8, 8, 8, 8, 8, 1, 1, 3, 2, 4, 8, 'Path/to/features.json')
 %       featuresextractorestandalone('Path/to/image3D.tif', 8, 8, 1, ...
 %   2, 4, 8, 8, 8, 8, 8, 1, 1, 3, 2, 4, 8, 'Path/to/features.json', ...
-%   'Path/to/UnlocOut.csv', 0.02, 13, 5, 50)
+%   'Path/to/UnlocOut.csv', 0.02, 13)
 %
 %   See also featuresextractor.
 %
@@ -151,19 +146,15 @@ function featuresextractorstandalone(image3DTif, ...
 % Check if optional arguments are provided
 nPointillistArguments = exist('unlocDetectionCsv', 'var') + ...
                         exist('radiusStepRipleyUm', 'var') + ...
-                        exist('maxRadiusRipleyUm', 'var') + ...
-                        exist('minClusterSizeVoronoi', 'var') + ...
-                        exist('maxClusterSizeVoronoi', 'var');
+                        exist('maxRadiusRipleyUm', 'var');
 switch nPointillistArguments
     case 0
         performsPointillist = false;
-    case 5
+    case 3
         performsPointillist = true;
-        [radiusStepRipleyUm, maxRadiusRipleyUm, ...
-         minClusterSizeVoronoi, maxClusterSizeVoronoi] = ...
+        [radiusStepRipleyUm, maxRadiusRipleyUm] = ...
             valuesfromstrings({radiusStepRipleyUm, maxRadiusRipleyUm}, ...
-                              {minClusterSizeVoronoi, ...
-                               maxClusterSizeVoronoi}, {}, {});
+                              {}, {}, {});
         % Read UNLOC detection output file
         % Seven columns table, with lat one being ignored artifical column due to
         % rows ending wth a delimiter. Columns are: time, x coordinate, y
@@ -209,8 +200,7 @@ if performsPointillist
     try
         pointillistFeatures = extractPointillistFeatures(...
             detectedCoordinatesPx, pixelSizeUm, radiusStepRipleyUm, ...
-            maxRadiusRipleyUm, minClusterSizeVoronoi, ...
-            maxClusterSizeVoronoi);
+            maxRadiusRipleyUm);
     catch exception
         if (strcmp(exception.identifier,'MATLAB:array:SizeLimitExceeded'))
             warning("Can't perform pointillist features extraction, " + ...

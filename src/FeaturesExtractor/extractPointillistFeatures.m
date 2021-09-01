@@ -1,10 +1,9 @@
 function featureStruct = extractPointillistFeatures(...
     detectedCoordinatesPx, pixelSizeUm, radiusStepKRipleyUm, ...
-    maxRadiusKRipleyUm, minClusterSizeVoronoi, maxClusterSizeVoronoi)
+    maxRadiusKRipleyUm)
 %extractPointillistFeatures  Extract pointillist features UNLOC output.
 %   Apply several pointillist features extraction methods to given UNLOC
-%   detection output. Extracted features are Ripley's K-function features
-%   and Voronoi segmentation features.
+%   detection output. Extracted features are Ripley's K-function features.
 %
 % 	Inputs
 %   ------
@@ -15,9 +14,6 @@ function featureStruct = extractPointillistFeatures(...
 %   K-function discretized estimation.
 %       maxRadiusKRipleyUm - Double. Maximum radius (µm) for Ripley
 %   K-function estimation.
-%       minClusterSizeVoronoi, maxClusterSizeVoronoi - Doubles. Minimum
-%   and maximum number of markers in a cluster for Voronoi features
-%   extraction.
 %
 %   Output
 %   ------
@@ -30,7 +26,7 @@ function featureStruct = extractPointillistFeatures(...
 %   Example
 %   -------
 %       featureStruct = extractPointillistFeatures(200 * rand(10,2), ...
-%   0.02, 13, 5, 50)
+%   0.02, 13)
 %
 %   See also extract2dfeatures, extract3dfeatures.
 %
@@ -79,6 +75,13 @@ featureStruct.Ripley = [kFunctionMax, ...
                         corr(radiusUm', kFunction'), ...
                         corr(radiusUm', kFunction', ...
                              'type', 'Spearman')];
+                         
+                         
+%   NOTE: Voronoi segmentation features extraction has been commented out
+%   as it is very slow. Please ensure to uncomment it and to provide
+%   correct values for minClusterSizeVoronoi and maxClusterSizeVoronoi if
+%   you intend to use those.
+%{
 %% Voronoi tessellation features
 % Mask of ones representing the region of interest (whole image)
 maskSizePx = ceil(max(detectedCoordinatesPx(:)));
@@ -118,3 +121,4 @@ featureStruct.Voronoi = [size(detectedCoordinatesPx,1), ...
                          clustersAreaUm2', ...
                          clustersDiameterUm', ...
                          mean(clustersAreaUm2)];
+%}
